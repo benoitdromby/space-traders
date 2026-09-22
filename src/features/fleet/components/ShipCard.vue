@@ -2,9 +2,9 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { Ship, ShipStatus } from '../types'
-import ShipFrameIcon from './ShipFrameIcon.vue'
-import StatBar from './StatBar.vue'
+import type { Ship, ShipStatus } from '@/features/fleet/types'
+import ShipFrameIcon from '@/features/fleet/components/ShipFrameIcon.vue'
+import StatBar from '@/features/fleet/components/StatBar.vue'
 
 const props = defineProps<{ ship: Ship; selected: boolean }>()
 const emit = defineEmits<{ select: [symbol: string] }>()

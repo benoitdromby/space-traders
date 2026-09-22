@@ -4,8 +4,8 @@ import { defineStore } from 'pinia'
 import { ApiError, setUnauthorizedHandler } from '@/api/client'
 import { clearAuthToken, getAuthToken, saveAuthToken } from '@/api/authToken'
 
-import { fetchAgent } from './agentApi'
-import type { Agent, AuthErrorCode } from './types'
+import { fetchAgent } from '@/features/auth/agentApi'
+import type { Agent, AuthErrorCode } from '@/features/auth/types'
 
 function toAuthErrorCode(error: unknown): AuthErrorCode {
   if (error instanceof ApiError) {

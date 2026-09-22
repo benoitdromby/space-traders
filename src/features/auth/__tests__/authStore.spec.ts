@@ -4,7 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { clearAuthToken, getAuthToken, saveAuthToken } from '@/api/authToken'
 import { AGENT, authorizationOf, mockFetch } from '@/__tests__/helpers'
 
-import { useAuthStore } from '../authStore'
+import { useAuthStore } from '@/features/auth/authStore'
 
 describe('auth store', () => {
   beforeEach(() => {

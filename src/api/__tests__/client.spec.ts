@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { authorizationOf, mockFetch } from '@/__tests__/helpers'
 
-import { clearAuthToken, getAuthToken, saveAuthToken } from '../authToken'
-import { ApiError, apiRequest, setUnauthorizedHandler } from '../client'
+import { clearAuthToken, getAuthToken, saveAuthToken } from '@/api/authToken'
+import { ApiError, apiRequest, setUnauthorizedHandler } from '@/api/client'
 
 describe('apiRequest', () => {
   beforeEach(() => {

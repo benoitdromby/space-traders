@@ -3,8 +3,8 @@ import { mount } from '@vue/test-utils'
 
 import { i18n } from '@/i18n'
 
-import ShipCard from '../components/ShipCard.vue'
-import { makeShip } from './fixtures'
+import ShipCard from '@/features/fleet/components/ShipCard.vue'
+import { makeShip } from '@/features/fleet/__tests__/fixtures'
 
 function mountCard(ship = makeShip(1), selected = false) {
   i18n.global.locale.value = 'en'

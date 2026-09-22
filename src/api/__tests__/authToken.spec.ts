@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { clearAuthToken, getAuthToken, saveAuthToken } from '../authToken'
+import { clearAuthToken, getAuthToken, saveAuthToken } from '@/api/authToken'
 
 describe('authToken', () => {
   beforeEach(() => {

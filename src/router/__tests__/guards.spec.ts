@@ -5,7 +5,7 @@ import { createMemoryHistory } from 'vue-router'
 import { clearAuthToken, getAuthToken, saveAuthToken } from '@/api/authToken'
 import { AGENT, mockFetch } from '@/__tests__/helpers'
 
-import { createAppRouter } from '../index'
+import { createAppRouter } from '@/router'
 
 describe('auth navigation guard', () => {
   beforeEach(() => {

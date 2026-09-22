@@ -6,8 +6,8 @@ import { clearAuthToken } from '@/api/authToken'
 import { AGENT, mockFetch } from '@/__tests__/helpers'
 import { useAuthStore } from '@/features/auth/authStore'
 
-import { PAGE_SIZE, useFleetStore } from '../fleetStore'
-import { makeFleet, mockShipsApi, requestedPages } from './fixtures'
+import { PAGE_SIZE, useFleetStore } from '@/features/fleet/fleetStore'
+import { makeFleet, mockShipsApi, requestedPages } from '@/features/fleet/__tests__/fixtures'
 
 describe('fleet store', () => {
   beforeEach(() => {

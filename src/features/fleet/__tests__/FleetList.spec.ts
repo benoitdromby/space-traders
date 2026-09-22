@@ -5,8 +5,8 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { mockFetch } from '@/__tests__/helpers'
 import { i18n } from '@/i18n'
 
-import FleetList from '../components/FleetList.vue'
-import { makeFleet, mockShipsApi, requestedPages } from './fixtures'
+import FleetList from '@/features/fleet/components/FleetList.vue'
+import { makeFleet, mockShipsApi, requestedPages } from '@/features/fleet/__tests__/fixtures'
 
 async function mountFleet() {
   const pinia = createPinia()

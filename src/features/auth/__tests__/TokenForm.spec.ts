@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 
 import { i18n } from '@/i18n'
 
-import TokenForm from '../components/TokenForm.vue'
+import TokenForm from '@/features/auth/components/TokenForm.vue'
 
 function mountForm(props: { errorCode?: 'invalidToken' | null; demoAvailable?: boolean } = {}) {
   i18n.global.locale.value = 'en'

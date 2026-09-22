@@ -18,6 +18,25 @@ export default defineConfigWithVueTs(
       'vue/multi-word-component-names': ['error', { ignores: ['App'] }],
     },
   },
+  {
+    name: 'app/import-rules',
+    // Only src/*: root-level config files (vite.config.ts, ...) sit outside it, where the "@"
+    // alias (which maps to "./src/*") can't reach them, so they still import each other by
+    // relative path.
+    files: ['src/**/*.{ts,mts,tsx,vue}'],
+    rules: {
+      // Use the "@/..." alias (src/*) instead, including for same-folder siblings: one style
+      // everywhere, and imports keep working when a file moves to a different folder.
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: ['./*', '../*'], message: 'Import from "@/..." instead of a relative path.' },
+          ],
+        },
+      ],
+    },
+  },
   // Must stay last: turns off stylistic rules that conflict with Prettier.
   prettierConfig,
 )

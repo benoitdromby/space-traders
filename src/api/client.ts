@@ -1,4 +1,4 @@
-import { clearAuthToken, getAuthToken } from './authToken'
+import { clearAuthToken, getAuthToken } from '@/api/authToken'
 
 const DEFAULT_API_BASE_URL = 'https://api.spacetraders.io/v2'
 

@@ -6,9 +6,9 @@ import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import LogoMark from '@/components/LogoMark.vue'
 import BrandName from '@/components/BrandName.vue'
 
-import TokenForm from '../components/TokenForm.vue'
-import { DEMO_TOKEN } from '../demoToken'
-import { useAuthStore } from '../authStore'
+import TokenForm from '@/features/auth/components/TokenForm.vue'
+import { DEMO_TOKEN } from '@/features/auth/demoToken'
+import { useAuthStore } from '@/features/auth/authStore'
 
 const { t } = useI18n()
 const router = useRouter()

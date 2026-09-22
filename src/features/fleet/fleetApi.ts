@@ -1,6 +1,6 @@
 import { apiRequest, type ApiListEnvelope } from '@/api/client'
 
-import type { Ship } from './types'
+import type { Ship } from '@/features/fleet/types'
 
 interface FetchShipsParams {
   page: number

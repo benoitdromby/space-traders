@@ -3,8 +3,8 @@ import { defineStore } from 'pinia'
 
 import { useAuthStore } from '@/features/auth/authStore'
 
-import { fetchShips } from './fleetApi'
-import type { Ship } from './types'
+import { fetchShips } from '@/features/fleet/fleetApi'
+import type { Ship } from '@/features/fleet/types'
 
 /** Ships per page. Pagination is only shown when the fleet is larger than this. */
 export const PAGE_SIZE = 3

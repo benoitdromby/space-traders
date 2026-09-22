@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 
 import { i18n } from '@/i18n'
 
-import PaginationControls from '../PaginationControls.vue'
+import PaginationControls from '@/components/PaginationControls.vue'
 
 function mountPager(props: { page: number; totalPages: number; disabled?: boolean }) {
   i18n.global.locale.value = 'en'

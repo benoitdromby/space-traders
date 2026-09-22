@@ -1,7 +1,7 @@
 import { createI18n } from 'vue-i18n'
 
-import en from './locales/en.json'
-import fr from './locales/fr.json'
+import en from '@/i18n/locales/en.json'
+import fr from '@/i18n/locales/fr.json'
 
 export const SUPPORTED_LOCALES = ['en', 'fr'] as const
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]

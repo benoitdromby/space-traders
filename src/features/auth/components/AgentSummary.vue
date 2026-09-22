@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { Agent } from '../types'
+import type { Agent } from '@/features/auth/types'
 
 const props = defineProps<{ agent: Agent }>()
 
