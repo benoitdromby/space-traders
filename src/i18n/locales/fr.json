@@ -46,6 +46,12 @@
       "DOCKED": "Amarré",
       "IN_ORBIT": "En orbite",
       "IN_TRANSIT": "En transit"
+    },
+    "actions": {
+      "enterOrbit": "Entrer en orbite",
+      "dock": "S'amarrer",
+      "pending": "Mise à jour…",
+      "error": "Impossible de mettre à jour ce vaisseau. Réessayez."
     }
   },
   "pagination": {

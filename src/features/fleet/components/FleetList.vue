@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -24,6 +24,23 @@ const loading = computed(
 // link or the back/forward buttons would).
 function selectShip(symbol: string) {
   void router.push({ name: 'ship', params: { symbol } })
+}
+
+// Per-ship, not global: one ship's dock/orbit request in flight (or failed) shouldn't affect how
+// any other ship's card looks.
+const togglingSymbols = ref(new Set<string>())
+const toggleErrors = reactive<Record<string, string>>({})
+
+async function toggleDocking(symbol: string) {
+  togglingSymbols.value.add(symbol)
+  delete toggleErrors[symbol]
+  try {
+    await fleet.toggleDocking(symbol)
+  } catch {
+    toggleErrors[symbol] = t('fleet.actions.error')
+  } finally {
+    togglingSymbols.value.delete(symbol)
+  }
 }
 </script>
 
@@ -64,7 +81,10 @@ function selectShip(symbol: string) {
             :key="ship.symbol"
             :ship="ship"
             :selected="ship.symbol === fleet.selectedSymbol"
+            :toggling="togglingSymbols.has(ship.symbol)"
+            :toggle-error="toggleErrors[ship.symbol] ?? null"
             @select="selectShip"
+            @toggle-docking="toggleDocking"
           />
         </template>
       </ul>

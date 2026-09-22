@@ -46,6 +46,12 @@
       "DOCKED": "Docked",
       "IN_ORBIT": "In orbit",
       "IN_TRANSIT": "In transit"
+    },
+    "actions": {
+      "enterOrbit": "Enter orbit",
+      "dock": "Dock",
+      "pending": "Updating…",
+      "error": "Could not update this ship. Try again."
     }
   },
   "pagination": {

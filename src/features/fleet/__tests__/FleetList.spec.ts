@@ -10,7 +10,12 @@ import { saveAuthToken } from '@/api/authToken'
 import { useFleetStore } from '@/features/fleet/stores/fleetStore'
 
 import FleetList from '@/features/fleet/components/FleetList.vue'
-import { makeFleet, mockAgentAndShipsApi, mockShipsApi } from '@/features/fleet/__tests__/fixtures'
+import {
+  makeFleet,
+  mockAgentAndShipsApi,
+  mockFleetWithActions,
+  mockShipsApi,
+} from '@/features/fleet/__tests__/fixtures'
 
 /** A router with nowhere to actually go: enough for useRouter() to work, without the guard's auth/fleet concerns. */
 function bareRouter() {
@@ -49,7 +54,7 @@ describe('FleetList', () => {
     mockShipsApi(makeFleet(2))
     const wrapper = await mountFleet()
 
-    expect(wrapper.findAll('li button')).toHaveLength(2)
+    expect(wrapper.findAll('li')).toHaveLength(2)
     expect(wrapper.text().replace(/\s+/g, ' ')).toContain('Fleet · 2 ships')
   })
 
@@ -57,7 +62,7 @@ describe('FleetList', () => {
     mockShipsApi(makeFleet(3))
     const wrapper = await mountFleet()
 
-    expect(wrapper.findAll('li button')).toHaveLength(3)
+    expect(wrapper.findAll('li')).toHaveLength(3)
     expect(wrapper.find('nav').exists()).toBe(false)
   })
 
@@ -97,7 +102,7 @@ describe('FleetList', () => {
     await flushPromises()
 
     expect(fetchMock).toHaveBeenCalledOnce()
-    expect(wrapper.findAll('li button')).toHaveLength(2)
+    expect(wrapper.findAll('li')).toHaveLength(2)
   })
 
   it('clicking a ship navigates to its URL and, through the real guard, highlights it', async () => {
@@ -114,7 +119,7 @@ describe('FleetList', () => {
     const pressed = () => wrapper.findAll('button[aria-pressed="true"]').map((b) => b.text())
     expect(pressed()[0]).toContain('LEO-1')
 
-    await wrapper.findAll('li button')[2]!.trigger('click')
+    await wrapper.findAll('li')[2]!.find('button').trigger('click')
     // The target is the route already showing, so this is normally instant, but it's still a
     // lazily-resolved navigation: wait for the outcome rather than guessing how many ticks it needs.
     await vi.waitFor(() => expect(router.currentRoute.value.params.symbol).toBe('LEO-3'))
@@ -122,5 +127,37 @@ describe('FleetList', () => {
 
     expect(pressed()).toHaveLength(1)
     expect(pressed()[0]).toContain('LEO-3')
+  })
+
+  it('toggling one ship does not disturb the others, and clears on retry', async () => {
+    mockFleetWithActions(makeFleet(2))
+    const wrapper = await mountFleet()
+    const cards = () => wrapper.findAll('li')
+    const toggleButton = (i: number) => cards()[i]!.findAll('button')[1]!
+
+    await toggleButton(0).trigger('click')
+    await flushPromises()
+
+    expect(cards()[0]!.text()).toContain('Dock') // LEO-1 flipped to IN_ORBIT
+    expect(cards()[1]!.text()).toContain('Enter orbit') // LEO-2 untouched, still DOCKED
+  })
+
+  it('shows an error next to the ship whose action failed, and retries cleanly', async () => {
+    mockShipsApi(makeFleet(1)) // the initial list load succeeds
+    const wrapper = await mountFleet()
+    const card = () => wrapper.findAll('li')[0]!
+
+    mockFetch(500, {}) // ...but the dock/orbit action itself fails
+    await card().findAll('button')[1]!.trigger('click')
+    await flushPromises()
+
+    expect(card().find('[role="alert"]').text()).toContain('Could not update this ship.')
+
+    mockFleetWithActions(makeFleet(1)) // retry succeeds
+    await card().findAll('button')[1]!.trigger('click')
+    await flushPromises()
+
+    expect(card().find('[role="alert"]').exists()).toBe(false)
+    expect(card().text()).toContain('Dock')
   })
 })

@@ -3,11 +3,18 @@ import { createPinia, setActivePinia } from 'pinia'
 import { flushPromises } from '@vue/test-utils'
 
 import { clearAuthToken } from '@/api/authToken'
+import { ApiError } from '@/api/client'
 import { AGENT, mockFetch } from '@/__tests__/helpers'
 import { useAuthStore } from '@/features/auth/stores/authStore'
 
 import { PAGE_SIZE, useFleetStore } from '@/features/fleet/stores/fleetStore'
-import { makeFleet, mockShipsApi, requestedPages } from '@/features/fleet/__tests__/fixtures'
+import {
+  makeFleet,
+  makeShip,
+  mockFleetWithActions,
+  mockShipsApi,
+  requestedPages,
+} from '@/features/fleet/__tests__/fixtures'
 
 describe('fleet store', () => {
   beforeEach(() => {
@@ -170,6 +177,74 @@ describe('fleet store', () => {
 
       await expect(fleet.selectBySymbol('LEO-1')).resolves.toBe(false)
       expect(fleet.status).toBe('error')
+    })
+  })
+
+  describe('toggleDocking', () => {
+    it('sends a docked ship into orbit', async () => {
+      const fleetData = makeFleet(1)
+      mockFleetWithActions(fleetData)
+      const fleet = useFleetStore()
+      await fleet.load()
+
+      await fleet.toggleDocking('LEO-1')
+
+      expect(fleet.ships[0]!.nav.status).toBe('IN_ORBIT')
+    })
+
+    it('docks an orbiting ship', async () => {
+      const fleetData = [makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_ORBIT' } })]
+      mockFleetWithActions(fleetData)
+      const fleet = useFleetStore()
+      await fleet.load()
+
+      await fleet.toggleDocking('LEO-1')
+
+      expect(fleet.ships[0]!.nav.status).toBe('DOCKED')
+    })
+
+    it('updates the selected ship too, when it is the one toggled', async () => {
+      mockFleetWithActions(makeFleet(1))
+      const fleet = useFleetStore()
+      await fleet.load()
+
+      await fleet.toggleDocking('LEO-1')
+
+      expect(fleet.selectedShip?.nav.status).toBe('IN_ORBIT')
+    })
+
+    it('does nothing for a ship in transit', async () => {
+      const fleetData = [makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_TRANSIT' } })]
+      const fetchMock = mockFleetWithActions(fleetData)
+      const fleet = useFleetStore()
+      await fleet.load()
+      fetchMock.mockClear()
+
+      await fleet.toggleDocking('LEO-1')
+
+      expect(fleet.ships[0]!.nav.status).toBe('IN_TRANSIT')
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('does nothing for a ship that is not on the displayed page', async () => {
+      const fetchMock = mockFleetWithActions(makeFleet(1))
+      const fleet = useFleetStore()
+      await fleet.load()
+      fetchMock.mockClear()
+
+      await fleet.toggleDocking('SOME-OTHER-SHIP')
+
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('throws and leaves the status untouched on failure', async () => {
+      mockShipsApi(makeFleet(1))
+      const fleet = useFleetStore()
+      await fleet.load()
+      mockFetch(500, {})
+
+      await expect(fleet.toggleDocking('LEO-1')).rejects.toBeInstanceOf(ApiError)
+      expect(fleet.ships[0]!.nav.status).toBe('DOCKED')
     })
   })
 })

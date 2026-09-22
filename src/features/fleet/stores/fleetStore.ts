@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 
 import { useAuthStore } from '@/features/auth/stores/authStore'
 
-import { fetchShips } from '@/features/fleet/api/fleetApi'
+import { dockShip, fetchShips, orbitShip } from '@/features/fleet/api/fleetApi'
 import type { Ship } from '@/features/fleet/types/ship'
 
 /** Ships per page. Pagination is only shown when the fleet is larger than this. */
@@ -96,6 +96,22 @@ export const useFleetStore = defineStore('fleet', () => {
     }
   }
 
+  /**
+   * Switches a docked ship to orbit, or an orbiting one to dock. A no-op while it's in transit
+   * (there's nowhere to send that request). Throws on failure — this is a per-ship action, not a
+   * fleet-wide one, so it doesn't touch `status`; the caller decides how to show that error.
+   */
+  async function toggleDocking(symbol: string): Promise<void> {
+    const ship = ships.value.find((s) => s.symbol === symbol)
+    if (!ship || ship.nav.status === 'IN_TRANSIT') return
+
+    const nextStatus = await (ship.nav.status === 'DOCKED' ? orbitShip(symbol) : dockShip(symbol))
+    ship.nav.status = nextStatus
+    // Normally the same object as `ship` already (selection always points into `ships`), but
+    // set it explicitly rather than lean on that being true forever.
+    if (selectedShip.value?.symbol === symbol) selectedShip.value.nav.status = nextStatus
+  }
+
   function reset() {
     controller?.abort()
     ships.value = []
@@ -127,5 +143,6 @@ export const useFleetStore = defineStore('fleet', () => {
     showPagination,
     load,
     selectBySymbol,
+    toggleDocking,
   }
 })
