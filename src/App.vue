@@ -4,7 +4,7 @@ import { RouterView, useRouter } from 'vue-router'
 
 import LoadingScreen from '@/components/LoadingScreen.vue'
 import StarField from '@/components/StarField.vue'
-import { useAuthStore } from '@/features/auth/authStore'
+import { useAuthStore } from '@/features/auth/stores/authStore'
 
 const auth = useAuthStore()
 const router = useRouter()

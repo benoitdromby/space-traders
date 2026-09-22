@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 
-import type { Ship } from '@/features/fleet/types'
+import type { Ship } from '@/features/fleet/types/ship'
 
 export function makeShip(n: number, overrides: Partial<Ship> = {}): Ship {
   return {

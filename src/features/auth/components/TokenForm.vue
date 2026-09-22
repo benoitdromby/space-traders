@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AuthErrorCode } from '@/features/auth/types'
+import type { AuthErrorCode } from '@/features/auth/types/agent'
 
 defineProps<{
   errorCode: AuthErrorCode | null

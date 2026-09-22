@@ -7,7 +7,7 @@ import LogoMark from '@/components/LogoMark.vue'
 import BrandName from '@/components/BrandName.vue'
 
 import TokenForm from '@/features/auth/components/TokenForm.vue'
-import { useAuthStore } from '@/features/auth/authStore'
+import { useAuthStore } from '@/features/auth/stores/authStore'
 
 const { t } = useI18n()
 const router = useRouter()

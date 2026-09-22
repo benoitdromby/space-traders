@@ -6,7 +6,7 @@ import PaginationControls from '@/components/PaginationControls.vue'
 import SectionLabel from '@/components/SectionLabel.vue'
 import SkeletonCard from '@/components/SkeletonCard.vue'
 
-import { PAGE_SIZE, useFleetStore } from '@/features/fleet/fleetStore'
+import { PAGE_SIZE, useFleetStore } from '@/features/fleet/stores/fleetStore'
 import ShipCard from '@/features/fleet/components/ShipCard.vue'
 
 const { t } = useI18n()

@@ -1,10 +1,10 @@
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 
-import { useAuthStore } from '@/features/auth/authStore'
+import { useAuthStore } from '@/features/auth/stores/authStore'
 
-import { fetchShips } from '@/features/fleet/fleetApi'
-import type { Ship } from '@/features/fleet/types'
+import { fetchShips } from '@/features/fleet/api/fleetApi'
+import type { Ship } from '@/features/fleet/types/ship'
 
 /** Ships per page. Pagination is only shown when the fleet is larger than this. */
 export const PAGE_SIZE = 3

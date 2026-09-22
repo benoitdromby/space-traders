@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 import AppTopbar from '@/components/AppTopbar.vue'
 import AgentSummary from '@/features/auth/components/AgentSummary.vue'
-import { useAuthStore } from '@/features/auth/authStore'
+import { useAuthStore } from '@/features/auth/stores/authStore'
 import FleetList from '@/features/fleet/components/FleetList.vue'
 
 const { t } = useI18n()

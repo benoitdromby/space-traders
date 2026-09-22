@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { Ship, ShipStatus } from '@/features/fleet/types'
+import type { Ship, ShipStatus } from '@/features/fleet/types/ship'
 import ShipFrameIcon from '@/features/fleet/components/ShipFrameIcon.vue'
 import StatBar from '@/features/fleet/components/StatBar.vue'
 
