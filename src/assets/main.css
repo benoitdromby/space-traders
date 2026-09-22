@@ -1,0 +1,63 @@
+@import 'tailwindcss';
+
+/* Design tokens, taken from the approved UI mockup. */
+@theme {
+  --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, 'Courier New', monospace;
+
+  --color-void: #080c14;
+  --color-surface: #0d1322;
+  --color-raised: #131c30;
+  --color-hover: #1a2540;
+  --color-line: #1e2d47;
+  --color-line-hi: #2a3f62;
+
+  --color-accent: #38bdf8;
+  --color-accent-dim: #0e4f70;
+  --color-gold: #f59e0b;
+  --color-ok: #34d399;
+  --color-danger: #f87171;
+
+  --color-ink-hi: #e2eaf7;
+  --color-ink: #8fa3bf;
+  /* Slightly lighter than the mockup (#4a607a) to reach WCAG AA contrast on the card background. */
+  --color-ink-dim: #6b8199;
+}
+
+@layer base {
+  html,
+  body,
+  #app {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-void font-sans text-sm leading-normal text-ink antialiased;
+  }
+}
+
+/* Loading placeholder shimmer */
+@utility skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-raised) 25%,
+    var(--color-hover) 50%,
+    var(--color-raised) 75%
+  );
+  background-size: 800px 100%;
+  border-radius: 4px;
+  animation: shimmer 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -400px 0;
+  }
+  to {
+    background-position: 400px 0;
+  }
+}

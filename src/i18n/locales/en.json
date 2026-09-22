@@ -1,0 +1,66 @@
+{
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "fr": "Français"
+  },
+  "splash": {
+    "title": "Connect to the universe",
+    "subtitle": "Access your fleet, navigate waypoints, and trade across star systems.",
+    "demo": "Use demo token",
+    "or": "or",
+    "tokenLabel": "Your API token",
+    "tokenPlaceholder": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9…",
+    "tokenHint": "Your token stays in this browser tab and is forgotten when you close it.",
+    "connect": "Connect"
+  },
+  "loading": {
+    "authenticating": "Authenticating agent…",
+    "contacting": "Contacting SpaceTraders API"
+  },
+  "auth": {
+    "disconnect": "Disconnect",
+    "errors": {
+      "invalidToken": "This token was rejected by the API. Check it and try again.",
+      "rateLimited": "Too many requests. Wait a moment and try again.",
+      "network": "Cannot reach the SpaceTraders API. Check your connection.",
+      "unknown": "Something went wrong while connecting. Please try again."
+    }
+  },
+  "agent": {
+    "symbol": "Agent",
+    "headquarters": "Headquarters",
+    "credits": "Credits",
+    "faction": "Faction"
+  },
+  "notFound": {
+    "heading": "Lost in space",
+    "message": "This page does not exist.",
+    "backHome": "Back to home"
+  },
+  "common": {
+    "retry": "Retry"
+  },
+  "fleet": {
+    "title": "Fleet",
+    "count": "No ships | {count} ship | {count} ships",
+    "location": "Location",
+    "cargo": "Cargo",
+    "fuel": "Fuel",
+    "empty": "Your fleet is empty.",
+    "error": "Could not load your fleet.",
+    "status": {
+      "DOCKED": "Docked",
+      "IN_ORBIT": "In orbit",
+      "IN_TRANSIT": "In transit"
+    }
+  },
+  "pagination": {
+    "label": "Pagination",
+    "first": "First page",
+    "previous": "Previous page",
+    "next": "Next page",
+    "last": "Last page",
+    "page": "page"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "language": {
+    "label": "Langue",
+    "en": "English",
+    "fr": "Français"
+  },
+  "splash": {
+    "title": "Connexion à l'univers",
+    "subtitle": "Accédez à votre flotte, naviguez entre les points de passage et commercez entre les systèmes stellaires.",
+    "demo": "Utiliser le jeton de démo",
+    "or": "ou",
+    "tokenLabel": "Votre jeton d'API",
+    "tokenPlaceholder": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9…",
+    "tokenHint": "Votre jeton reste dans cet onglet du navigateur et est oublié à sa fermeture.",
+    "connect": "Se connecter"
+  },
+  "loading": {
+    "authenticating": "Authentification de l'agent…",
+    "contacting": "Contact de l'API SpaceTraders"
+  },
+  "auth": {
+    "disconnect": "Se déconnecter",
+    "errors": {
+      "invalidToken": "Ce jeton a été refusé par l'API. Vérifiez-le et réessayez.",
+      "rateLimited": "Trop de requêtes. Patientez un instant et réessayez.",
+      "network": "Impossible de joindre l'API SpaceTraders. Vérifiez votre connexion.",
+      "unknown": "Une erreur est survenue lors de la connexion. Veuillez réessayer."
+    }
+  },
+  "agent": {
+    "symbol": "Agent",
+    "headquarters": "Quartier général",
+    "credits": "Crédits",
+    "faction": "Faction"
+  },
+  "notFound": {
+    "heading": "Perdu dans l'espace",
+    "message": "Cette page n'existe pas.",
+    "backHome": "Retour à l'accueil"
+  },
+  "common": {
+    "retry": "Réessayer"
+  },
+  "fleet": {
+    "title": "Flotte",
+    "count": "Aucun vaisseau | {count} vaisseau | {count} vaisseaux",
+    "location": "Position",
+    "cargo": "Soute",
+    "fuel": "Carburant",
+    "empty": "Votre flotte est vide.",
+    "error": "Impossible de charger votre flotte.",
+    "status": {
+      "DOCKED": "Amarré",
+      "IN_ORBIT": "En orbite",
+      "IN_TRANSIT": "En transit"
+    }
+  },
+  "pagination": {
+    "label": "Pagination",
+    "first": "Première page",
+    "previous": "Page précédente",
+    "next": "Page suivante",
+    "last": "Dernière page",
+    "page": "page"
+  }
+}

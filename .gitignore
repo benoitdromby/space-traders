@@ -1,0 +1,23 @@
+# Dependencies & build output
+node_modules
+dist
+dist-ssr
+coverage
+*.tsbuildinfo
+
+# Environment files: never commit secrets (only .env.example is tracked)
+.env
+.env.*
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editors / OS
+.DS_Store
+.idea
+.vscode/*
+!.vscode/extensions.json
+*.swp
