@@ -6,10 +6,13 @@ import AppTopbar from '@/components/AppTopbar.vue'
 import AgentSummary from '@/features/auth/components/AgentSummary.vue'
 import { useAuthStore } from '@/features/auth/stores/authStore'
 import FleetList from '@/features/fleet/components/FleetList.vue'
+import { useFleetStore } from '@/features/fleet/stores/fleetStore'
+import LocationPanel from '@/features/location/components/LocationPanel.vue'
 
 const { t } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
+const fleet = useFleetStore()
 
 async function disconnect() {
   auth.disconnect()
@@ -33,6 +36,7 @@ async function disconnect() {
     </AppTopbar>
 
     <main class="mx-auto flex w-full max-w-175 flex-1 flex-col gap-4 p-5">
+      <LocationPanel :ship="fleet.selectedShip" :fleet-loaded="fleet.loaded" />
       <FleetList />
     </main>
   </div>

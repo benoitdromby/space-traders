@@ -7,7 +7,12 @@ import { AGENT, mockFetch } from '@/__tests__/helpers'
 import { useAuthStore } from '@/features/auth/stores/authStore'
 
 import { PAGE_SIZE, useFleetStore } from '@/features/fleet/stores/fleetStore'
-import { makeFleet, mockShipsApi, requestedPages } from '@/features/fleet/__tests__/fixtures'
+import {
+  makeFleet,
+  makeShip,
+  mockShipsApi,
+  requestedPages,
+} from '@/features/fleet/__tests__/fixtures'
 
 describe('fleet store', () => {
   beforeEach(() => {
@@ -38,9 +43,21 @@ describe('fleet store', () => {
     await fleet.load(1)
     expect(fleet.selectedSymbol).toBe('LEO-1')
 
-    fleet.select('LEO-2')
+    fleet.select(makeShip(2))
     await fleet.load(2)
     expect(fleet.selectedSymbol).toBe('LEO-2')
+  })
+
+  it('exposes the full selected ship, not just its symbol', async () => {
+    mockShipsApi(makeFleet(2))
+    const fleet = useFleetStore()
+    await fleet.load()
+
+    expect(fleet.selectedShip?.symbol).toBe('LEO-1')
+
+    const other = makeShip(9, { nav: { ...makeShip(9).nav, status: 'IN_TRANSIT' } })
+    fleet.select(other)
+    expect(fleet.selectedShip).toEqual(other)
   })
 
   it.each([

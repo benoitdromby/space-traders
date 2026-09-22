@@ -16,7 +16,10 @@ export const useFleetStore = defineStore('fleet', () => {
   const status = ref<'idle' | 'loading' | 'error'>('idle')
   /** True once a page has been fetched successfully: tells "not loaded yet" from "empty fleet". */
   const loaded = ref(false)
-  const selectedSymbol = ref<string | null>(null)
+  // The full record, not just its symbol: other features (e.g. the location panel) need its
+  // nav data, and the selected ship isn't always on the page currently displayed.
+  const selectedShip = ref<Ship | null>(null)
+  const selectedSymbol = computed(() => selectedShip.value?.symbol ?? null)
 
   const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
   const showPagination = computed(() => total.value > PAGE_SIZE)
@@ -35,7 +38,7 @@ export const useFleetStore = defineStore('fleet', () => {
       const result = await fetchShips({ page: targetPage, limit: PAGE_SIZE, signal })
       ships.value = result.ships
       total.value = result.total
-      selectedSymbol.value ??= result.ships[0]?.symbol ?? null
+      selectedShip.value ??= result.ships[0] ?? null
       loaded.value = true
       status.value = 'idle'
     } catch {
@@ -44,8 +47,8 @@ export const useFleetStore = defineStore('fleet', () => {
     }
   }
 
-  function select(symbol: string) {
-    selectedSymbol.value = symbol
+  function select(ship: Ship) {
+    selectedShip.value = ship
   }
 
   function reset() {
@@ -55,7 +58,7 @@ export const useFleetStore = defineStore('fleet', () => {
     page.value = 1
     status.value = 'idle'
     loaded.value = false
-    selectedSymbol.value = null
+    selectedShip.value = null
   }
 
   // Never show one agent's ships to the next: drop everything when the session ends.
@@ -73,6 +76,7 @@ export const useFleetStore = defineStore('fleet', () => {
     page,
     status,
     loaded,
+    selectedShip,
     selectedSymbol,
     totalPages,
     showPagination,

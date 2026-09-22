@@ -17,6 +17,12 @@ const loading = computed(
   () => fleet.status === 'loading' || (!fleet.loaded && fleet.status !== 'error'),
 )
 
+function selectShip(symbol: string) {
+  // Ships are only kept for the page currently displayed, which is where this symbol came from.
+  const ship = fleet.ships.find((s) => s.symbol === symbol)
+  if (ship) fleet.select(ship)
+}
+
 onMounted(() => fleet.load())
 </script>
 
@@ -57,7 +63,7 @@ onMounted(() => fleet.load())
             :key="ship.symbol"
             :ship="ship"
             :selected="ship.symbol === fleet.selectedSymbol"
-            @select="fleet.select"
+            @select="selectShip"
           />
         </template>
       </ul>

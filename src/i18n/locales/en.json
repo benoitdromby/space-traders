@@ -60,5 +60,17 @@
     "next": "Next page",
     "last": "Last page",
     "page": "page"
+  },
+  "location": {
+    "title": "Active ship · location",
+    "system": "Stellar system",
+    "waypoint": "Current waypoint",
+    "type": "Type",
+    "coordinates": "Coordinates",
+    "waypoints": "Waypoints",
+    "faction": "Faction",
+    "marketplace": "Marketplace",
+    "noShip": "No ship to show a location for.",
+    "error": "Could not load this location."
   }
 }

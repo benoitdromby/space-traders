@@ -60,5 +60,17 @@
     "next": "Page suivante",
     "last": "Dernière page",
     "page": "page"
+  },
+  "location": {
+    "title": "Vaisseau actif · position",
+    "system": "Système stellaire",
+    "waypoint": "Point de passage actuel",
+    "type": "Type",
+    "coordinates": "Coordonnées",
+    "waypoints": "Points de passage",
+    "faction": "Faction",
+    "marketplace": "Marché",
+    "noShip": "Aucun vaisseau dont afficher la position.",
+    "error": "Impossible de charger cette position."
   }
 }
