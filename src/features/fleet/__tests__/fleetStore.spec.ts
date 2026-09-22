@@ -7,12 +7,7 @@ import { AGENT, mockFetch } from '@/__tests__/helpers'
 import { useAuthStore } from '@/features/auth/stores/authStore'
 
 import { PAGE_SIZE, useFleetStore } from '@/features/fleet/stores/fleetStore'
-import {
-  makeFleet,
-  makeShip,
-  mockShipsApi,
-  requestedPages,
-} from '@/features/fleet/__tests__/fixtures'
+import { makeFleet, mockShipsApi, requestedPages } from '@/features/fleet/__tests__/fixtures'
 
 describe('fleet store', () => {
   beforeEach(() => {
@@ -43,21 +38,8 @@ describe('fleet store', () => {
     await fleet.load(1)
     expect(fleet.selectedSymbol).toBe('LEO-1')
 
-    fleet.select(makeShip(2))
     await fleet.load(2)
-    expect(fleet.selectedSymbol).toBe('LEO-2')
-  })
-
-  it('exposes the full selected ship, not just its symbol', async () => {
-    mockShipsApi(makeFleet(2))
-    const fleet = useFleetStore()
-    await fleet.load()
-
-    expect(fleet.selectedShip?.symbol).toBe('LEO-1')
-
-    const other = makeShip(9, { nav: { ...makeShip(9).nav, status: 'IN_TRANSIT' } })
-    fleet.select(other)
-    expect(fleet.selectedShip).toEqual(other)
+    expect(fleet.selectedSymbol).toBe('LEO-1')
   })
 
   it.each([
@@ -136,5 +118,58 @@ describe('fleet store', () => {
     expect(fleet.ships).toEqual([])
     expect(fleet.total).toBe(0)
     expect(fleet.selectedSymbol).toBeNull()
+  })
+
+  describe('selectBySymbol', () => {
+    it('selects a ship already on the displayed page without a request', async () => {
+      const fetchMock = mockShipsApi(makeFleet(3))
+      const fleet = useFleetStore()
+      await fleet.load()
+      fetchMock.mockClear()
+
+      await expect(fleet.selectBySymbol('LEO-3')).resolves.toBe(true)
+
+      expect(fleet.selectedSymbol).toBe('LEO-3')
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('scans forward and lands on the page the ship is actually on', async () => {
+      const fetchMock = mockShipsApi(makeFleet(7)) // 3 pages of 3, LEO-7 is on page 3
+      const fleet = useFleetStore()
+
+      await expect(fleet.selectBySymbol('LEO-7')).resolves.toBe(true)
+
+      expect(fleet.selectedSymbol).toBe('LEO-7')
+      expect(fleet.page).toBe(3)
+      expect(fleet.ships.map((s) => s.symbol)).toEqual(['LEO-7'])
+      expect(requestedPages(fetchMock)).toEqual([1, 2, 3])
+    })
+
+    it('stops scanning and reports failure once every page has been checked', async () => {
+      const fetchMock = mockShipsApi(makeFleet(4))
+      const fleet = useFleetStore()
+
+      await expect(fleet.selectBySymbol('NOT-A-SHIP')).resolves.toBe(false)
+
+      expect(fleet.selectedShip).toBeNull()
+      expect(fleet.loaded).toBe(true)
+      expect(requestedPages(fetchMock)).toEqual([1, 2])
+    })
+
+    it('resolves false immediately for an empty fleet, without looping', async () => {
+      mockShipsApi([])
+      const fleet = useFleetStore()
+
+      await expect(fleet.selectBySymbol('LEO-1')).resolves.toBe(false)
+      expect(fleet.loaded).toBe(true)
+    })
+
+    it('flags an error on network failure', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
+      const fleet = useFleetStore()
+
+      await expect(fleet.selectBySymbol('LEO-1')).resolves.toBe(false)
+      expect(fleet.status).toBe('error')
+    })
   })
 })

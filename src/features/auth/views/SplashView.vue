@@ -8,13 +8,19 @@ import BrandName from '@/components/BrandName.vue'
 
 import TokenForm from '@/features/auth/components/TokenForm.vue'
 import { useAuthStore } from '@/features/auth/stores/authStore'
+import { useFleetStore } from '@/features/fleet/stores/fleetStore'
 
 const { t } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
+const fleet = useFleetStore()
 
 async function connect(token: string) {
-  if (await auth.connect(token)) await router.push({ name: 'dashboard' })
+  if (!(await auth.connect(token))) return
+  // There is always a ship to land on: a fresh SpaceTraders agent starts with one.
+  await fleet.load(1)
+  const symbol = fleet.selectedShip?.symbol
+  if (symbol) await router.push({ name: 'ship', params: { symbol } })
 }
 </script>
 

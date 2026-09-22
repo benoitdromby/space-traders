@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 import PaginationControls from '@/components/PaginationControls.vue'
 import SectionLabel from '@/components/SectionLabel.vue'
@@ -10,6 +11,7 @@ import { PAGE_SIZE, useFleetStore } from '@/features/fleet/stores/fleetStore'
 import ShipCard from '@/features/fleet/components/ShipCard.vue'
 
 const { t } = useI18n()
+const router = useRouter()
 const fleet = useFleetStore()
 
 // Also true just before the first request starts, so an unloaded fleet never reads as empty.
@@ -17,13 +19,12 @@ const loading = computed(
   () => fleet.status === 'loading' || (!fleet.loaded && fleet.status !== 'error'),
 )
 
+// The URL is the source of truth for the selected ship: the router guard is what actually
+// updates the store, so a click here just navigates and lets it do that (same as a pasted
+// link or the back/forward buttons would).
 function selectShip(symbol: string) {
-  // Ships are only kept for the page currently displayed, which is where this symbol came from.
-  const ship = fleet.ships.find((s) => s.symbol === symbol)
-  if (ship) fleet.select(ship)
+  void router.push({ name: 'ship', params: { symbol } })
 }
-
-onMounted(() => fleet.load())
 </script>
 
 <template>

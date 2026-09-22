@@ -47,8 +47,53 @@ export const useFleetStore = defineStore('fleet', () => {
     }
   }
 
-  function select(ship: Ship) {
-    selectedShip.value = ship
+  /**
+   * Selects the ship with this symbol, whatever page it's on. This is the only place selection
+   * changes: the router calls it to keep the store in sync with the "/ship/:symbol" URL,
+   * whether that's a click, a pasted link, or the back/forward buttons.
+   *
+   * Returns false if no ship has that symbol (an unknown or stale URL).
+   */
+  async function selectBySymbol(symbol: string): Promise<boolean> {
+    // Fast path: already on the page currently displayed, no request needed.
+    const onCurrentPage = ships.value.find((s) => s.symbol === symbol)
+    if (onCurrentPage) {
+      selectedShip.value = onCurrentPage
+      return true
+    }
+
+    // Slow path (a direct/pasted URL, or navigating to a ship on a page not currently shown):
+    // scan pages from the start until the ship turns up. Reuses the same paginated endpoint
+    // normal browsing already calls, so it costs one request per page up to the ship's own.
+    controller?.abort()
+    controller = new AbortController()
+    const { signal } = controller
+
+    status.value = 'loading'
+    try {
+      for (let candidatePage = 1; ; candidatePage++) {
+        const result = await fetchShips({ page: candidatePage, limit: PAGE_SIZE, signal })
+        const match = result.ships.find((s) => s.symbol === symbol)
+        if (match) {
+          ships.value = result.ships
+          total.value = result.total
+          page.value = candidatePage
+          selectedShip.value = match
+          loaded.value = true
+          status.value = 'idle'
+          return true
+        }
+        if (candidatePage * PAGE_SIZE >= result.total) {
+          total.value = result.total
+          loaded.value = true
+          status.value = 'idle'
+          return false
+        }
+      }
+    } catch {
+      if (!signal.aborted) status.value = 'error'
+      return false
+    }
   }
 
   function reset() {
@@ -81,6 +126,6 @@ export const useFleetStore = defineStore('fleet', () => {
     totalPages,
     showPagination,
     load,
-    select,
+    selectBySymbol,
   }
 })
