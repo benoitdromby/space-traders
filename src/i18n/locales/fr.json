@@ -7,8 +7,6 @@
   "splash": {
     "title": "Connexion à l'univers",
     "subtitle": "Accédez à votre flotte, naviguez entre les points de passage et commercez entre les systèmes stellaires.",
-    "demo": "Utiliser le jeton de démo",
-    "or": "ou",
     "tokenLabel": "Votre jeton d'API",
     "tokenPlaceholder": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9…",
     "tokenHint": "Votre jeton reste dans cet onglet du navigateur et est oublié à sa fermeture.",

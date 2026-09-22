@@ -40,15 +40,12 @@ function contentSecurityPolicy(apiOrigin: string): Plugin {
   }
 }
 
-export default defineConfig(({ mode, command }) => {
+export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_')
   const apiOrigin = new URL(env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL).origin
 
   return {
     base: env.VITE_BASE_PATH || '/',
-    // The demo token is for local development only: never let a build embed it,
-    // even if it is set in .env.local.
-    define: command === 'build' ? { 'import.meta.env.VITE_DEMO_TOKEN': 'undefined' } : {},
     plugins: [
       vue(),
       tailwindcss(),

@@ -7,8 +7,6 @@
   "splash": {
     "title": "Connect to the universe",
     "subtitle": "Access your fleet, navigate waypoints, and trade across star systems.",
-    "demo": "Use demo token",
-    "or": "or",
     "tokenLabel": "Your API token",
     "tokenPlaceholder": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9…",
     "tokenHint": "Your token stays in this browser tab and is forgotten when you close it.",

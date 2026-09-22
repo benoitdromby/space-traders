@@ -7,7 +7,6 @@ import LogoMark from '@/components/LogoMark.vue'
 import BrandName from '@/components/BrandName.vue'
 
 import TokenForm from '@/features/auth/components/TokenForm.vue'
-import { DEMO_TOKEN } from '@/features/auth/demoToken'
 import { useAuthStore } from '@/features/auth/authStore'
 
 const { t } = useI18n()
@@ -16,10 +15,6 @@ const auth = useAuthStore()
 
 async function connect(token: string) {
   if (await auth.connect(token)) await router.push({ name: 'dashboard' })
-}
-
-function connectWithDemo() {
-  if (DEMO_TOKEN) void connect(DEMO_TOKEN)
 }
 </script>
 
@@ -36,12 +31,7 @@ function connectWithDemo() {
       <h2 class="mb-1.5 text-[22px] font-semibold text-ink-hi">{{ t('splash.title') }}</h2>
       <p class="mb-7 text-[13px] leading-relaxed">{{ t('splash.subtitle') }}</p>
 
-      <TokenForm
-        :error-code="auth.error"
-        :demo-available="DEMO_TOKEN !== undefined"
-        @connect="connect"
-        @demo="connectWithDemo"
-      />
+      <TokenForm :error-code="auth.error" @connect="connect" />
 
       <div class="mt-6 flex justify-end border-t border-line pt-4">
         <LanguageSwitcher />

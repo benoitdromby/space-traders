@@ -5,10 +5,10 @@ import { i18n } from '@/i18n'
 
 import TokenForm from '@/features/auth/components/TokenForm.vue'
 
-function mountForm(props: { errorCode?: 'invalidToken' | null; demoAvailable?: boolean } = {}) {
+function mountForm(props: { errorCode?: 'invalidToken' | null } = {}) {
   i18n.global.locale.value = 'en'
   return mount(TokenForm, {
-    props: { errorCode: null, demoAvailable: false, ...props },
+    props: { errorCode: null, ...props },
     global: { plugins: [i18n] },
   })
 }
@@ -34,15 +34,6 @@ describe('TokenForm', () => {
 
     expect(wrapper.emitted('connect')).toEqual([['abc']])
     expect((wrapper.find('input').element as HTMLInputElement).value).toBe('')
-  })
-
-  it('shows the demo button only when a demo token is available', async () => {
-    expect(mountForm().text()).not.toContain('Use demo token')
-
-    const wrapper = mountForm({ demoAvailable: true })
-    const demo = wrapper.findAll('button').find((b) => b.text().includes('Use demo token'))!
-    await demo.trigger('click')
-    expect(wrapper.emitted('demo')).toHaveLength(1)
   })
 
   it('announces errors accessibly', () => {

@@ -6,12 +6,10 @@ import type { AuthErrorCode } from '@/features/auth/types'
 
 defineProps<{
   errorCode: AuthErrorCode | null
-  demoAvailable: boolean
 }>()
 
 const emit = defineEmits<{
   connect: [token: string]
-  demo: []
 }>()
 
 const { t } = useI18n()
@@ -28,22 +26,6 @@ function submit() {
 
 <template>
   <div>
-    <button
-      v-if="demoAvailable"
-      type="button"
-      class="mb-5 block w-full cursor-pointer rounded-md border border-line bg-raised px-4 py-2.5 text-[13px] font-semibold text-ink transition-colors hover:border-line-hi hover:text-ink-hi focus-visible:outline-2 focus-visible:outline-accent"
-      @click="emit('demo')"
-    >
-      ▶ {{ t('splash.demo') }}
-    </button>
-
-    <div
-      v-if="demoAvailable"
-      class="mb-5 flex items-center gap-3 font-mono text-[10px] tracking-[0.1em] text-ink-dim uppercase before:h-px before:flex-1 before:bg-line after:h-px after:flex-1 after:bg-line"
-    >
-      {{ t('splash.or') }}
-    </div>
-
     <form novalidate @submit.prevent="submit">
       <label
         for="token-input"
