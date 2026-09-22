@@ -31,11 +31,6 @@
     "credits": "Crédits",
     "faction": "Faction"
   },
-  "notFound": {
-    "heading": "Perdu dans l'espace",
-    "message": "Cette page n'existe pas.",
-    "backHome": "Retour à l'accueil"
-  },
   "common": {
     "retry": "Réessayer"
   },
@@ -72,5 +67,22 @@
     "marketplace": "Marché",
     "noShip": "Aucun vaisseau dont afficher la position.",
     "error": "Impossible de charger cette position."
+  },
+  "error": {
+    "backHome": "Retour à l'accueil",
+    "reasons": {
+      "no-ships": {
+        "heading": "Impossible d'afficher cette page",
+        "message": "Cet agent n'a aucun vaisseau, or l'application a besoin d'au moins un pour afficher quoi que ce soit. Créez un nouvel agent, ou revenez une fois que celui-ci aura un vaisseau."
+      },
+      "not-found": {
+        "heading": "Perdu dans l'espace",
+        "message": "Cette page n'existe pas."
+      }
+    },
+    "unknown": {
+      "heading": "Impossible d'afficher cette page",
+      "message": "Une erreur est survenue et cette page ne peut pas être affichée."
+    }
   }
 }

@@ -99,4 +99,75 @@ describe('navigation guard', () => {
     await router.push('/ship/LEO-2')
     expect(fleet.selectedSymbol).toBe('LEO-2')
   })
+
+  describe('an agent with no ships', () => {
+    it('sends a resumed session to the "no ships" error page instead of a dead end', async () => {
+      saveAuthToken('stored')
+      mockAgentAndShipsApi(makeFleet(0))
+      const router = createAppRouter(createMemoryHistory())
+
+      await router.push('/')
+
+      expect(router.currentRoute.value.name).toBe('error')
+      expect(router.currentRoute.value.params.reason).toBe('no-ships')
+    })
+
+    it('sends a direct ship link there too', async () => {
+      saveAuthToken('stored')
+      mockAgentAndShipsApi(makeFleet(0))
+      const router = createAppRouter(createMemoryHistory())
+
+      await router.push('/ship/LEO-1')
+
+      expect(router.currentRoute.value.name).toBe('error')
+      expect(router.currentRoute.value.params.reason).toBe('no-ships')
+    })
+
+    it('anonymous visitors still get sent to the splash page first', async () => {
+      const router = createAppRouter(createMemoryHistory())
+      await router.push('/error/no-ships')
+      expect(router.currentRoute.value.name).toBe('splash')
+    })
+
+    it('leaves the error page alone while the fleet is genuinely still empty', async () => {
+      saveAuthToken('stored')
+      mockAgentAndShipsApi(makeFleet(0))
+      const router = createAppRouter(createMemoryHistory())
+
+      await router.push('/error/no-ships')
+
+      expect(router.currentRoute.value.name).toBe('error')
+    })
+
+    it('bounces away from the error page once a ship turns up', async () => {
+      saveAuthToken('stored')
+      mockAgentAndShipsApi(makeFleet(1))
+      const router = createAppRouter(createMemoryHistory())
+
+      await router.push('/error/no-ships')
+
+      expect(router.currentRoute.value.name).toBe('ship')
+      expect(router.currentRoute.value.params.symbol).toBe('LEO-1')
+    })
+  })
+
+  describe('an unmatched URL', () => {
+    it('shows the "not found" page directly for an anonymous visitor, without demanding a login', async () => {
+      const router = createAppRouter(createMemoryHistory())
+
+      await router.push('/this/goes/nowhere')
+
+      expect(router.currentRoute.value.name).toBe('not-found')
+    })
+
+    it('shows it just the same for a connected visitor', async () => {
+      saveAuthToken('stored')
+      mockAgentAndShipsApi(makeFleet(2))
+      const router = createAppRouter(createMemoryHistory())
+
+      await router.push('/this/goes/nowhere')
+
+      expect(router.currentRoute.value.name).toBe('not-found')
+    })
+  })
 })

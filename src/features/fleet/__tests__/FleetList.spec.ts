@@ -115,9 +115,11 @@ describe('FleetList', () => {
     expect(pressed()[0]).toContain('LEO-1')
 
     await wrapper.findAll('li button')[2]!.trigger('click')
+    // The target is the route already showing, so this is normally instant, but it's still a
+    // lazily-resolved navigation: wait for the outcome rather than guessing how many ticks it needs.
+    await vi.waitFor(() => expect(router.currentRoute.value.params.symbol).toBe('LEO-3'))
     await flushPromises()
 
-    expect(router.currentRoute.value.params.symbol).toBe('LEO-3')
     expect(pressed()).toHaveLength(1)
     expect(pressed()[0]).toContain('LEO-3')
   })

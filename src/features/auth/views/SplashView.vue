@@ -9,6 +9,7 @@ import BrandName from '@/components/BrandName.vue'
 import TokenForm from '@/features/auth/components/TokenForm.vue'
 import { useAuthStore } from '@/features/auth/stores/authStore'
 import { useFleetStore } from '@/features/fleet/stores/fleetStore'
+import { errorRoute } from '@/router/errorReasons'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -17,10 +18,11 @@ const fleet = useFleetStore()
 
 async function connect(token: string) {
   if (!(await auth.connect(token))) return
-  // There is always a ship to land on: a fresh SpaceTraders agent starts with one.
+  // Almost always a ship to land on: a fresh SpaceTraders agent starts with one. The rare
+  // exception (an agent with none) gets an explicit page instead of being stuck here silently.
   await fleet.load(1)
   const symbol = fleet.selectedShip?.symbol
-  if (symbol) await router.push({ name: 'ship', params: { symbol } })
+  await router.push(symbol ? { name: 'ship', params: { symbol } } : errorRoute('no-ships'))
 }
 </script>
 

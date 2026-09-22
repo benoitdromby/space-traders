@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, type RouterHistory } from 'vue-router'
 
 import { useAuthStore } from '@/features/auth/stores/authStore'
 import { useFleetStore } from '@/features/fleet/stores/fleetStore'
+import { errorRoute } from '@/router/errorReasons'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -31,9 +32,22 @@ export function createAppRouter(
         meta: { requiresAuth: true },
       },
       {
+        // A generic "this can't be shown right now" page. :reason picks the message (see
+        // src/router/errorReasons.ts) so this one route can cover more than one case.
+        path: '/error/:reason',
+        name: 'error',
+        component: () => import('@/views/ErrorView.vue'),
+        props: true,
+        meta: { requiresAuth: true },
+      },
+      {
+        // Whatever none of the routes above matched: the same generic page, fixed to the
+        // "not-found" reason. Deliberately has no requiresAuth — a mistyped link must say so,
+        // not demand a login first.
         path: '/:pathMatch(.*)*',
         name: 'not-found',
-        component: () => import('@/views/NotFoundView.vue'),
+        component: () => import('@/views/ErrorView.vue'),
+        props: { reason: 'not-found' },
       },
     ],
   })
@@ -57,7 +71,7 @@ export function createAppRouter(
     // whichever ship is already selected, or the first one if none is yet.
     if (to.name === 'splash' && auth.isConnected) {
       const symbol = await defaultShipSymbol()
-      return symbol ? { name: 'ship', params: { symbol } } : true
+      return symbol ? { name: 'ship', params: { symbol } } : errorRoute('no-ships')
     }
 
     // Keep the store's selection in sync with the URL: a click, a pasted link, and the
@@ -73,10 +87,17 @@ export function createAppRouter(
           if (fallback && fallback !== requested) {
             return { name: 'ship', params: { symbol: fallback }, replace: true }
           }
-          // No ships at all: nothing sane to fall back to. Let it render; the panels already
-          // handle an empty fleet.
+          // No ships at all: there is no ship route to fall back to.
+          if (!fallback) return errorRoute('no-ships')
         }
       }
+    }
+
+    // Visiting the "no ships" error page directly while the fleet isn't actually empty anymore
+    // (e.g. a ship was added since): don't show a stale error when there's a real ship to go to.
+    if (to.name === 'error' && to.params.reason === 'no-ships') {
+      const symbol = await defaultShipSymbol()
+      if (symbol) return { name: 'ship', params: { symbol } }
     }
 
     return true

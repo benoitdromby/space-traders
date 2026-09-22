@@ -31,11 +31,6 @@
     "credits": "Credits",
     "faction": "Faction"
   },
-  "notFound": {
-    "heading": "Lost in space",
-    "message": "This page does not exist.",
-    "backHome": "Back to home"
-  },
   "common": {
     "retry": "Retry"
   },
@@ -72,5 +67,22 @@
     "marketplace": "Marketplace",
     "noShip": "No ship to show a location for.",
     "error": "Could not load this location."
+  },
+  "error": {
+    "backHome": "Back to home",
+    "reasons": {
+      "no-ships": {
+        "heading": "This can't be shown",
+        "message": "This agent has no ships, and the app needs at least one to show anything. Register a new agent, or come back once this one has a ship."
+      },
+      "not-found": {
+        "heading": "Lost in space",
+        "message": "This page does not exist."
+      }
+    },
+    "unknown": {
+      "heading": "This can't be shown",
+      "message": "Something went wrong and this page cannot be shown."
+    }
   }
 }
