@@ -93,6 +93,26 @@ describe('LocationPanel', () => {
     expect(wrapper.text()).toContain('X1-XZ48-A1')
   })
 
+  it('labels the waypoint "Current waypoint" for a ship that has actually arrived', async () => {
+    vi.stubGlobal('fetch', mockLocationApi())
+    const wrapper = await mountPanel({ ship: makeShip(1), fleetLoaded: true }) // DOCKED by default
+    expect(wrapper.text()).toContain('Current waypoint')
+    expect(wrapper.text()).not.toContain('Destination')
+    expect(wrapper.text()).not.toContain('In transit')
+  })
+
+  it('labels it "Destination" and flags it in transit for a ship still travelling there', async () => {
+    vi.stubGlobal('fetch', mockLocationApi())
+    const ship = makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_TRANSIT' } })
+    const wrapper = await mountPanel({ ship, fleetLoaded: true })
+
+    expect(wrapper.text()).toContain('Destination')
+    expect(wrapper.text()).toContain('In transit')
+    expect(wrapper.text()).not.toContain('Current waypoint')
+    // Still shows where it's headed, just not as "current".
+    expect(wrapper.text()).toContain('X1-XZ48-A1')
+  })
+
   it('refetches when the selected ship changes', async () => {
     const stub = mockLocationApi()
     vi.stubGlobal('fetch', stub)

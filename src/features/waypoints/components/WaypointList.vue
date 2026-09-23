@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { computed, toRef } from 'vue'
+import { computed, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MarketplaceIcon from '@/components/MarketplaceIcon.vue'
 import SectionLabel from '@/components/SectionLabel.vue'
+import TravelIcon from '@/components/TravelIcon.vue'
 import VirtualList from '@/components/VirtualList.vue'
+import { InsufficientFuelError } from '@/features/fleet/api/fleetApi'
+import { useFleetStore } from '@/features/fleet/stores/fleetStore'
 import type { Ship } from '@/features/fleet/types/ship'
 import { useWaypoints } from '@/features/waypoints/composables/useWaypoints'
 import { humanize } from '@/utils/humanize'
@@ -16,6 +19,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+const fleet = useFleetStore()
 
 const { waypoints, total, loaded, loadError, moreError, loadingMore, loadNextPage, retry } =
   useWaypoints(toRef(props, 'ship'))
@@ -26,6 +30,55 @@ const loading = computed(
 )
 
 const ROW_HEIGHT = 50
+
+// The ship itself is the source of truth for "currently travelling" — not just right after this
+// panel sends it somewhere, but also if it was already IN_TRANSIT when the page loaded.
+const traveling = computed(() => props.ship?.nav.status === 'IN_TRANSIT')
+
+// `nav.waypointSymbol` becomes the *destination* the instant a trip starts, well before the ship
+// has actually arrived — so it's only "here" once the ship isn't mid-transit. While travelling,
+// no waypoint is "here": the destination just looks like any other reachable one (its travel icon
+// disabled, same as every other row, since the ship isn't in orbit to send anywhere).
+const currentWaypointSymbol = computed(() =>
+  props.ship && props.ship.nav.status !== 'IN_TRANSIT' ? props.ship.nav.waypointSymbol : null,
+)
+
+const travelPending = ref(false)
+const travelError = ref<{ waypoint: string; fuelRequired: number; fuelAvailable: number } | null>(
+  null,
+)
+const travelFailed = ref(false)
+
+// A leftover error from a previous ship shouldn't linger once a different one is selected.
+watch(
+  () => props.ship?.symbol,
+  () => {
+    travelError.value = null
+    travelFailed.value = false
+  },
+)
+
+async function travelTo(waypointSymbol: string) {
+  if (!props.ship || travelPending.value) return
+  travelError.value = null
+  travelFailed.value = false
+  travelPending.value = true
+  try {
+    await fleet.navigateShip(props.ship.symbol, waypointSymbol)
+  } catch (error) {
+    if (error instanceof InsufficientFuelError) {
+      travelError.value = {
+        waypoint: waypointSymbol,
+        fuelRequired: error.fuelRequired,
+        fuelAvailable: error.fuelAvailable,
+      }
+    } else {
+      travelFailed.value = true
+    }
+  } finally {
+    travelPending.value = false
+  }
+}
 </script>
 
 <template>
@@ -73,6 +126,37 @@ const ROW_HEIGHT = 50
     </p>
 
     <div v-else class="flex flex-col gap-1.5">
+      <div
+        v-if="traveling"
+        class="flex items-center gap-2 rounded-md border border-gold/30 bg-gold/10 px-3 py-2 text-[11px] text-gold"
+      >
+        <span class="relative flex size-2 shrink-0">
+          <span
+            class="absolute inline-flex h-full w-full rounded-full bg-gold opacity-75 motion-safe:animate-ping"
+          />
+          <span class="relative inline-flex size-2 rounded-full bg-gold" />
+        </span>
+        {{ t('waypoints.traveling', { waypoint: ship?.nav.waypointSymbol }) }}
+      </div>
+
+      <div
+        v-else-if="travelError"
+        role="alert"
+        class="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-[11px] text-danger"
+      >
+        {{
+          t('waypoints.insufficientFuel', {
+            waypoint: travelError.waypoint,
+            required: travelError.fuelRequired,
+            available: travelError.fuelAvailable,
+          })
+        }}
+      </div>
+
+      <p v-else-if="travelFailed" role="alert" class="text-[10px] text-danger">
+        {{ t('waypoints.travelError') }}
+      </p>
+
       <VirtualList
         :items="waypoints"
         :row-height="ROW_HEIGHT"
@@ -83,7 +167,7 @@ const ROW_HEIGHT = 50
         <template #row="{ item }">
           <div
             class="flex h-full items-center gap-2 border-b border-line/50 px-3 last:border-b-0"
-            :class="item.symbol === ship?.nav.waypointSymbol ? 'bg-accent/10' : 'bg-void'"
+            :class="item.symbol === currentWaypointSymbol ? 'bg-accent/10' : 'bg-void'"
           >
             <span class="min-w-0 flex-1">
               <span class="block truncate font-mono text-[11px] font-bold text-ink-hi">
@@ -99,11 +183,26 @@ const ROW_HEIGHT = 50
               <span class="sr-only">{{ t('location.marketplace') }}</span>
             </span>
             <span
-              v-if="item.symbol === ship?.nav.waypointSymbol"
+              v-if="item.symbol === currentWaypointSymbol"
               class="shrink-0 rounded-[3px] bg-ok/15 px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-[0.04em] text-ok uppercase"
             >
               {{ t('waypoints.here') }}
             </span>
+            <button
+              v-else
+              type="button"
+              :disabled="travelPending || ship?.nav.status !== 'IN_ORBIT'"
+              :title="
+                ship?.nav.status === 'IN_ORBIT'
+                  ? t('waypoints.travelTo', { waypoint: item.symbol })
+                  : t('waypoints.travelRequiresOrbit')
+              "
+              class="flex shrink-0 cursor-pointer items-center justify-center rounded-[4px] border border-line-hi/60 p-1 text-ink-dim transition-colors hover:not-disabled:border-accent-dim hover:not-disabled:text-accent disabled:cursor-default disabled:opacity-40"
+              @click="travelTo(item.symbol)"
+            >
+              <TravelIcon class="size-3.5" />
+              <span class="sr-only">{{ t('waypoints.travelTo', { waypoint: item.symbol }) }}</span>
+            </button>
           </div>
         </template>
       </VirtualList>

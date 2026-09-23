@@ -67,6 +67,7 @@
     "title": "Active ship · location",
     "system": "Stellar system",
     "waypoint": "Current waypoint",
+    "destination": "Destination",
     "type": "Type",
     "coordinates": "Coordinates",
     "waypoints": "Waypoints",
@@ -80,7 +81,12 @@
     "here": "Here",
     "empty": "This system has no waypoints.",
     "error": "Could not load waypoints.",
-    "moreError": "Could not load more waypoints."
+    "moreError": "Could not load more waypoints.",
+    "travelTo": "Travel to {waypoint}",
+    "travelRequiresOrbit": "The ship must be in orbit to travel.",
+    "traveling": "In transit to {waypoint}…",
+    "insufficientFuel": "Not enough fuel to reach {waypoint}: needs {required}, has {available}.",
+    "travelError": "Could not start travel. Try again."
   },
   "error": {
     "backHome": "Back to home",

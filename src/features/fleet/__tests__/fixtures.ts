@@ -11,6 +11,9 @@ export function makeShip(n: number, overrides: Partial<Ship> = {}): Ship {
       waypointSymbol: 'X1-XZ48-A1',
       status: 'DOCKED',
       flightMode: 'CRUISE',
+      // Harmlessly in the past by default, so nothing schedules an arrival recheck unless a
+      // test opts into IN_TRANSIT (and a matching future arrival) on purpose.
+      route: { arrival: '2020-01-01T00:00:00.000Z' },
     },
     frame: { symbol: 'FRAME_FRIGATE', name: 'Frigate' },
     cargo: { units: 10, capacity: 40 },
@@ -57,8 +60,9 @@ export function mockAgentAndShipsApi(fleet: Ship[]) {
 
 /**
  * Stubs `GET /my/ships` like `mockShipsApi`, plus `POST /my/ships/{symbol}/dock`, `.../orbit`,
- * and `PATCH .../nav` (flight mode): applies the change to that ship in `fleet` (so a later list
- * refetch would see it too) and answers with its new nav.
+ * `.../navigate`, `PATCH .../nav` (flight mode), and `GET /my/ships/{symbol}` (a single ship):
+ * applies the change to that ship in `fleet` (so a later list refetch, or single-ship fetch,
+ * would see it too) and answers with its new nav.
  */
 export function mockFleetWithActions(fleet: Ship[]) {
   const stub = vi.fn().mockImplementation(async (input: string, init?: RequestInit) => {
@@ -74,6 +78,20 @@ export function mockFleetWithActions(fleet: Ship[]) {
       return new Response(JSON.stringify({ data: { nav: ship.nav } }))
     }
 
+    const navigate = url.pathname.match(/\/my\/ships\/([^/]+)\/navigate$/)
+    if (navigate) {
+      const [, symbol] = navigate
+      const ship = fleet.find((s) => s.symbol === symbol)
+      if (!ship)
+        return new Response(JSON.stringify({ error: { message: 'not found' } }), { status: 404 })
+      const { waypointSymbol } = JSON.parse(String(init?.body)) as { waypointSymbol: string }
+      ship.nav.status = 'IN_TRANSIT'
+      ship.nav.waypointSymbol = waypointSymbol
+      ship.nav.route = { arrival: '2099-01-01T00:00:00.000Z' }
+      ship.fuel = { ...ship.fuel, current: Math.max(0, ship.fuel.current - 1) }
+      return new Response(JSON.stringify({ data: { nav: ship.nav, fuel: ship.fuel, events: [] } }))
+    }
+
     const nav = url.pathname.match(/\/my\/ships\/([^/]+)\/nav$/)
     if (nav) {
       const [, symbol] = nav
@@ -85,6 +103,15 @@ export function mockFleetWithActions(fleet: Ship[]) {
       }
       ship.nav.flightMode = flightMode
       return new Response(JSON.stringify({ data: { nav: ship.nav, fuel: {}, events: [] } }))
+    }
+
+    const singleShip = url.pathname.match(/\/my\/ships\/([^/]+)$/)
+    if (singleShip && (init?.method ?? 'GET') === 'GET') {
+      const [, symbol] = singleShip
+      const ship = fleet.find((s) => s.symbol === symbol)
+      if (!ship)
+        return new Response(JSON.stringify({ error: { message: 'not found' } }), { status: 404 })
+      return new Response(JSON.stringify({ data: ship }))
     }
 
     const page = Number(url.searchParams.get('page'))

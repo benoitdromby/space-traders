@@ -7,6 +7,7 @@ import { ApiError } from '@/api/client'
 import { AGENT, mockFetch } from '@/__tests__/helpers'
 import { useAuthStore } from '@/features/auth/stores/authStore'
 
+import { InsufficientFuelError } from '@/features/fleet/api/fleetApi'
 import { PAGE_SIZE, useFleetStore } from '@/features/fleet/stores/fleetStore'
 import {
   makeFleet,
@@ -299,6 +300,167 @@ describe('fleet store', () => {
 
       await expect(fleet.changeFlightMode('LEO-1', 'BURN')).rejects.toBeInstanceOf(ApiError)
       expect(fleet.ships[0]!.nav.flightMode).toBe('CRUISE')
+    })
+  })
+
+  describe('navigateShip', () => {
+    it('sends an orbiting ship to a new waypoint', async () => {
+      const fleetData = [makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_ORBIT' } })]
+      mockFleetWithActions(fleetData)
+      const fleet = useFleetStore()
+      await fleet.load()
+
+      await fleet.navigateShip('LEO-1', 'X1-XZ48-A2')
+
+      expect(fleet.ships[0]!.nav.status).toBe('IN_TRANSIT')
+      expect(fleet.ships[0]!.nav.waypointSymbol).toBe('X1-XZ48-A2')
+      expect(fleet.ships[0]!.fuel.current).toBeLessThan(300)
+    })
+
+    it('updates the selected ship too, when it is the one sent travelling', async () => {
+      mockFleetWithActions([makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_ORBIT' } })])
+      const fleet = useFleetStore()
+      await fleet.load()
+
+      await fleet.navigateShip('LEO-1', 'X1-XZ48-A2')
+
+      expect(fleet.selectedShip?.nav.status).toBe('IN_TRANSIT')
+    })
+
+    it('does nothing for a docked ship: there is nowhere to send that request', async () => {
+      const fetchMock = mockFleetWithActions(makeFleet(1)) // starts DOCKED
+      const fleet = useFleetStore()
+      await fleet.load()
+      fetchMock.mockClear()
+
+      await fleet.navigateShip('LEO-1', 'X1-XZ48-A2')
+
+      expect(fetchMock).not.toHaveBeenCalled()
+      expect(fleet.ships[0]!.nav.status).toBe('DOCKED')
+    })
+
+    it('does nothing for a ship in transit already', async () => {
+      const fleetData = [makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_TRANSIT' } })]
+      const fetchMock = mockFleetWithActions(fleetData)
+      const fleet = useFleetStore()
+      await fleet.load()
+      fetchMock.mockClear()
+
+      await fleet.navigateShip('LEO-1', 'X1-XZ48-A2')
+
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('does nothing for a ship that is not on the displayed page', async () => {
+      const fetchMock = mockFleetWithActions(makeFleet(1))
+      const fleet = useFleetStore()
+      await fleet.load()
+      fetchMock.mockClear()
+
+      await fleet.navigateShip('SOME-OTHER-SHIP', 'X1-XZ48-A2')
+
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('throws InsufficientFuelError and leaves the ship untouched when the trip is too far', async () => {
+      mockShipsApi([makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_ORBIT' } })])
+      const fleet = useFleetStore()
+      await fleet.load()
+
+      mockFetch(400, {
+        error: { code: 4203, message: 'boom', data: { fuelRequired: 500, fuelAvailable: 300 } },
+      })
+
+      const error = await fleet.navigateShip('LEO-1', 'X1-XZ48-Z9').catch((e: unknown) => e)
+      expect(error).toBeInstanceOf(InsufficientFuelError)
+      expect((error as InstanceType<typeof InsufficientFuelError>).fuelRequired).toBe(500)
+      expect((error as InstanceType<typeof InsufficientFuelError>).fuelAvailable).toBe(300)
+      expect(fleet.ships[0]!.nav.status).toBe('IN_ORBIT')
+    })
+
+    it('throws ApiError and leaves the ship untouched for any other failure', async () => {
+      mockShipsApi([makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_ORBIT' } })])
+      const fleet = useFleetStore()
+      await fleet.load()
+      mockFetch(500, {})
+
+      await expect(fleet.navigateShip('LEO-1', 'X1-XZ48-A2')).rejects.toBeInstanceOf(ApiError)
+      expect(fleet.ships[0]!.nav.status).toBe('IN_ORBIT')
+    })
+
+    it('refreshes the ship on its own once its transit should have ended', async () => {
+      vi.useFakeTimers({ now: new Date('2030-01-01T00:00:00.000Z') })
+      try {
+        const ship = makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_ORBIT' } })
+        const stub = vi.fn().mockImplementation(async (input: string) => {
+          const url = new URL(input)
+          if (url.pathname.endsWith('/navigate')) {
+            ship.nav = {
+              ...ship.nav,
+              status: 'IN_TRANSIT',
+              waypointSymbol: 'X1-XZ48-A2',
+              route: { arrival: '2030-01-01T00:00:05.000Z' }, // 5s out
+            }
+            return new Response(
+              JSON.stringify({ data: { nav: ship.nav, fuel: ship.fuel, events: [] } }),
+            )
+          }
+          if (url.pathname === '/v2/my/ships/LEO-1') {
+            // The trip has landed by the time anything asks again.
+            ship.nav = { ...ship.nav, status: 'IN_ORBIT' }
+            return new Response(JSON.stringify({ data: ship }))
+          }
+          return new Response(
+            JSON.stringify({ data: [ship], meta: { total: 1, page: 1, limit: 3 } }),
+          )
+        })
+        vi.stubGlobal('fetch', stub)
+
+        const fleet = useFleetStore()
+        await fleet.load()
+        await fleet.navigateShip('LEO-1', 'X1-XZ48-A2')
+        expect(fleet.ships[0]!.nav.status).toBe('IN_TRANSIT')
+
+        await vi.advanceTimersByTimeAsync(6_000)
+
+        expect(fleet.ships[0]!.nav.status).toBe('IN_ORBIT')
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('also watches a ship that was already in transit on load, not just ones just sent off', async () => {
+      vi.useFakeTimers({ now: new Date('2030-01-01T00:00:00.000Z') })
+      try {
+        const ship = makeShip(1, {
+          nav: {
+            ...makeShip(1).nav,
+            status: 'IN_TRANSIT',
+            route: { arrival: '2030-01-01T00:00:05.000Z' },
+          },
+        })
+        const stub = vi.fn().mockImplementation(async (input: string) => {
+          const url = new URL(input)
+          if (url.pathname === '/v2/my/ships/LEO-1') {
+            ship.nav = { ...ship.nav, status: 'IN_ORBIT' }
+            return new Response(JSON.stringify({ data: ship }))
+          }
+          return new Response(
+            JSON.stringify({ data: [ship], meta: { total: 1, page: 1, limit: 3 } }),
+          )
+        })
+        vi.stubGlobal('fetch', stub)
+
+        const fleet = useFleetStore()
+        await fleet.load()
+        expect(fleet.ships[0]!.nav.status).toBe('IN_TRANSIT')
+
+        await vi.advanceTimersByTimeAsync(6_000)
+
+        expect(fleet.ships[0]!.nav.status).toBe('IN_ORBIT')
+      } finally {
+        vi.useRealTimers()
+      }
     })
   })
 })

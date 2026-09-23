@@ -67,6 +67,7 @@
     "title": "Vaisseau actif · position",
     "system": "Système stellaire",
     "waypoint": "Point de passage actuel",
+    "destination": "Destination",
     "type": "Type",
     "coordinates": "Coordonnées",
     "waypoints": "Points de passage",
@@ -80,7 +81,12 @@
     "here": "Ici",
     "empty": "Ce système n'a aucun point de passage.",
     "error": "Impossible de charger les points de passage.",
-    "moreError": "Impossible de charger plus de points de passage."
+    "moreError": "Impossible de charger plus de points de passage.",
+    "travelTo": "Voyager vers {waypoint}",
+    "travelRequiresOrbit": "Le vaisseau doit être en orbite pour voyager.",
+    "traveling": "En transit vers {waypoint}…",
+    "insufficientFuel": "Carburant insuffisant pour atteindre {waypoint} : besoin de {required}, disponible {available}.",
+    "travelError": "Impossible de démarrer le voyage. Réessayez."
   },
   "error": {
     "backHome": "Retour à l'accueil",

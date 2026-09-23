@@ -11,6 +11,8 @@ export interface Ship {
     waypointSymbol: string
     status: ShipStatus
     flightMode: FlightMode
+    /** When the ship's current (or most recent) route finishes — in the past unless IN_TRANSIT. */
+    route: { arrival: string }
   }
   frame: { symbol: string; name: string }
   cargo: { units: number; capacity: number }
