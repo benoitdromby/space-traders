@@ -58,9 +58,13 @@ describe('ErrorView', () => {
     expect(wrapper.text()).not.toContain('Disconnect')
   })
 
-  it('shows the agent and a disconnect button when connected, and disconnects to the splash page', async () => {
+  it('shows the agent and ends the session when the disconnect button is clicked', async () => {
+    // Navigating away from here afterwards is App.vue's job (see its own test suite) — this
+    // button only needs to end the session; two things both trying to navigate is what caused
+    // the bug where disconnecting sometimes left the page stuck instead.
     setActivePinia(createPinia())
-    useAuthStore().agent = AGENT
+    const auth = useAuthStore()
+    auth.agent = AGENT
     i18n.global.locale.value = 'en'
     const router = testRouter()
     await router.push('/error/no-ships')
@@ -73,6 +77,6 @@ describe('ErrorView', () => {
     await wrapper.find('button').trigger('click')
     await flushPromises()
 
-    expect(router.currentRoute.value.name).toBe('splash')
+    expect(auth.isConnected).toBe(false)
   })
 })

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 import AppTopbar from '@/components/AppTopbar.vue'
@@ -11,13 +10,15 @@ import LocationPanel from '@/features/location/components/LocationPanel.vue'
 import WaypointList from '@/features/waypoints/components/WaypointList.vue'
 
 const { t } = useI18n()
-const router = useRouter()
 const auth = useAuthStore()
 const fleet = useFleetStore()
 
-async function disconnect() {
+// Just the state change — App.vue's own watcher on `auth.isConnected` is what navigates back to
+// the splash page. Calling router.replace() here too used to race that watcher: two concurrent
+// navigations to the same target, with Vue Router silently cancelling whichever lost, sometimes
+// leaving neither one actually complete.
+function disconnect() {
   auth.disconnect()
-  await router.replace({ name: 'splash' })
 }
 </script>
 

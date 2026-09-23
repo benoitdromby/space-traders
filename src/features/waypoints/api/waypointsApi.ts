@@ -1,4 +1,4 @@
-import { apiRequest, type ApiListEnvelope } from '@/api/client'
+import { apiRequest, type ApiEnvelope, type ApiListEnvelope } from '@/api/client'
 
 import type { WaypointSummary } from '@/features/waypoints/types/waypoint'
 
@@ -11,7 +11,6 @@ interface RawWaypoint {
   x: number
   y: number
   faction?: { symbol: string }
-  traits: { symbol: string }[]
 }
 
 interface FetchSystemWaypointsParams {
@@ -35,7 +34,28 @@ export async function fetchSystemWaypoints({
     x: wp.x,
     y: wp.y,
     faction: wp.faction?.symbol ?? null,
-    hasMarketplace: wp.traits.some((trait) => trait.symbol === 'MARKETPLACE'),
   }))
   return { waypoints, total: response.meta.total }
+}
+
+interface RawWaypointCoordinates {
+  x: number
+  y: number
+}
+
+/**
+ * Just one waypoint's coordinates — used as the origin point for distances shown against the
+ * rest of the system's list. A dedicated request rather than relying on the paginated list to
+ * happen to have reached it yet: this needs to resolve immediately, whichever page it's on.
+ */
+export async function fetchWaypointCoordinates(
+  systemSymbol: string,
+  waypointSymbol: string,
+  signal?: AbortSignal,
+): Promise<{ x: number; y: number }> {
+  const response = await apiRequest<ApiEnvelope<RawWaypointCoordinates>>(
+    `systems/${systemSymbol}/waypoints/${waypointSymbol}`,
+    { signal },
+  )
+  return { x: response.data.x, y: response.data.y }
 }

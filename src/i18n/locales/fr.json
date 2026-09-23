@@ -32,7 +32,8 @@
     "faction": "Faction"
   },
   "common": {
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "close": "Fermer"
   },
   "fleet": {
     "title": "Flotte",
@@ -73,6 +74,7 @@
     "waypoints": "Points de passage",
     "faction": "Faction",
     "marketplace": "Marché",
+    "marketRequiresArrival": "Attendez que le vaisseau arrive pour consulter ce marché.",
     "noShip": "Aucun vaisseau dont afficher la position.",
     "error": "Impossible de charger cette position."
   },
@@ -82,11 +84,22 @@
     "empty": "Ce système n'a aucun point de passage.",
     "error": "Impossible de charger les points de passage.",
     "moreError": "Impossible de charger plus de points de passage.",
+    "distance": "Distance :",
     "travelTo": "Voyager vers {waypoint}",
     "travelRequiresOrbit": "Le vaisseau doit être en orbite pour voyager.",
     "traveling": "En transit vers {waypoint}…",
     "insufficientFuel": "Carburant insuffisant pour atteindre {waypoint} : besoin de {required}, disponible {available}.",
     "travelError": "Impossible de démarrer le voyage. Réessayez."
+  },
+  "market": {
+    "title": "Marché",
+    "itemColumn": "Échange",
+    "buy": "Achat",
+    "sell": "Vente",
+    "imports": "Importations",
+    "exports": "Exportations",
+    "error": "Impossible de charger ce marché.",
+    "empty": "Aucune donnée commerciale disponible pour ce marché."
   },
   "error": {
     "backHome": "Retour à l'accueil",

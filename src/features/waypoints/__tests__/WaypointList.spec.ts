@@ -73,9 +73,9 @@ describe('WaypointList', () => {
     expect(wrapper.text()).toContain('This system has no waypoints.')
   })
 
-  it('lists the waypoints, marking the current one and any with a marketplace', async () => {
+  it('lists the waypoints, marking the current one', async () => {
     mockWaypointsApi('X1-XZ48', [
-      makeWaypoint(1, { symbol: 'X1-XZ48-A1', hasMarketplace: true }),
+      makeWaypoint(1, { symbol: 'X1-XZ48-A1' }),
       makeWaypoint(2, { symbol: 'X1-XZ48-B2' }),
     ])
     const ship = makeShip(1, { nav: { ...makeShip(1).nav, waypointSymbol: 'X1-XZ48-A1' } })
@@ -85,7 +85,33 @@ describe('WaypointList', () => {
     expect(text).toContain('X1-XZ48-A1')
     expect(text).toContain('X1-XZ48-B2')
     expect(text).toContain('Here')
-    expect(text).toContain('Marketplace')
+  })
+
+  it("shows the distance from the ship's own waypoint to every other one", async () => {
+    mockWaypointsApi('X1-XZ48', [
+      makeWaypoint(1, { symbol: 'X1-XZ48-A1', x: 0, y: 0 }), // the ship's own waypoint
+      makeWaypoint(2, { symbol: 'X1-XZ48-B2', x: 3, y: 4 }), // a 3-4-5 triangle: distance 5
+    ])
+    const ship = makeShip(1, { nav: { ...makeShip(1).nav, waypointSymbol: 'X1-XZ48-A1' } })
+    const wrapper = await mountList({ ship, fleetLoaded: true })
+    await flushPromises()
+
+    expect(wrapper.text().match(/Distance:/g) ?? []).toHaveLength(2) // including its own (0)
+    expect(wrapper.text()).toContain('Distance: 5')
+  })
+
+  it('shows no distance while the ship is mid-transit: there is nowhere to measure it from', async () => {
+    mockWaypointsApi('X1-XZ48', [
+      makeWaypoint(1, { symbol: 'X1-XZ48-A1', x: 0, y: 0 }),
+      makeWaypoint(2, { symbol: 'X1-XZ48-B2', x: 3, y: 4 }),
+    ])
+    const ship = makeShip(1, {
+      nav: { ...makeShip(1).nav, status: 'IN_TRANSIT', waypointSymbol: 'X1-XZ48-B2' },
+    })
+    const wrapper = await mountList({ ship, fleetLoaded: true })
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('Distance:')
   })
 
   it('is windowed: a long list renders far fewer rows than it has items', async () => {

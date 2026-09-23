@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, toRef } from 'vue'
+import { computed, ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MarketplaceIcon from '@/components/MarketplaceIcon.vue'
@@ -7,6 +7,7 @@ import SectionLabel from '@/components/SectionLabel.vue'
 import type { Ship } from '@/features/fleet/types/ship'
 import { useShipLocation } from '@/features/location/composables/useShipLocation'
 import LocationField from '@/features/location/components/LocationField.vue'
+import MarketModal from '@/features/market/components/MarketModal.vue'
 import { humanize } from '@/utils/humanize'
 
 const props = defineProps<{
@@ -30,6 +31,10 @@ const location = computed(() => {
 // it has actually arrived — so while IN_TRANSIT this panel is describing where the ship is
 // headed, not where it is. Label and flag that distinctly rather than calling it "current".
 const traveling = computed(() => props.ship?.nav.status === 'IN_TRANSIT')
+
+// Trade prices are only visible to a ship actually at the waypoint (not just headed there), so
+// the market button is disabled — same reasoning as the "Here" badge elsewhere in the app.
+const marketOpen = ref(false)
 </script>
 
 <template>
@@ -112,31 +117,35 @@ const traveling = computed(() => props.ship?.nav.status === 'IN_TRANSIT')
           <p class="mb-1 font-mono text-[9px] tracking-[0.14em] text-ink-dim uppercase">
             {{ traveling ? t('location.destination') : t('location.waypoint') }}
           </p>
-          <p class="mb-0.5 flex items-center gap-1.5">
-            <span class="font-mono text-[15px] font-bold text-accent">
-              {{ location.waypoint.symbol }}
-            </span>
-            <!-- The icon itself is decorative (aria-hidden); this span carries its accessible name. -->
-            <span
-              v-if="location.waypoint.hasMarketplace"
-              :title="t('location.marketplace')"
-              class="inline-flex shrink-0 items-center"
-            >
-              <MarketplaceIcon class="size-3.5 text-accent" />
-              <span class="sr-only">{{ t('location.marketplace') }}</span>
-            </span>
-            <span
-              v-if="traveling"
-              class="inline-flex shrink-0 items-center gap-1 rounded-[3px] bg-gold/15 px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-[0.04em] text-gold uppercase"
-            >
-              <span class="relative flex size-1.5 shrink-0">
-                <span
-                  class="absolute inline-flex h-full w-full rounded-full bg-gold opacity-75 motion-safe:animate-ping"
-                />
-                <span class="relative inline-flex size-1.5 rounded-full bg-gold" />
+          <p class="mb-0.5 flex items-center justify-between gap-1.5">
+            <span class="flex min-w-0 items-center gap-1.5">
+              <span class="truncate font-mono text-[15px] font-bold text-accent">
+                {{ location.waypoint.symbol }}
               </span>
-              {{ t('fleet.status.IN_TRANSIT') }}
+              <span
+                v-if="traveling"
+                class="inline-flex shrink-0 items-center gap-1 rounded-[3px] bg-gold/15 px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-[0.04em] text-gold uppercase"
+              >
+                <span class="relative flex size-1.5 shrink-0">
+                  <span
+                    class="absolute inline-flex h-full w-full rounded-full bg-gold opacity-75 motion-safe:animate-ping"
+                  />
+                  <span class="relative inline-flex size-1.5 rounded-full bg-gold" />
+                </span>
+                {{ t('fleet.status.IN_TRANSIT') }}
+              </span>
             </span>
+            <button
+              v-if="location.waypoint.hasMarketplace"
+              type="button"
+              :disabled="traveling"
+              :title="traveling ? t('location.marketRequiresArrival') : t('location.marketplace')"
+              class="shrink-0 cursor-pointer rounded-md p-1 text-accent transition-colors hover:not-disabled:text-ink-hi focus-visible:outline-2 focus-visible:outline-accent disabled:cursor-default disabled:opacity-40"
+              @click="marketOpen = true"
+            >
+              <MarketplaceIcon class="size-5" />
+              <span class="sr-only">{{ t('location.marketplace') }}</span>
+            </button>
           </p>
           <LocationField :label="t('location.type')">{{
             humanize(location.waypoint.type)
@@ -147,5 +156,12 @@ const traveling = computed(() => props.ship?.nav.status === 'IN_TRANSIT')
         </div>
       </div>
     </div>
+
+    <MarketModal
+      :open="marketOpen"
+      :system-symbol="ship?.nav.systemSymbol ?? null"
+      :waypoint-symbol="ship && !traveling ? ship.nav.waypointSymbol : null"
+      @close="marketOpen = false"
+    />
   </section>
 </template>

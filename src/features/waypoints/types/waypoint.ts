@@ -5,5 +5,4 @@ export interface WaypointSummary {
   x: number
   y: number
   faction: string | null
-  hasMarketplace: boolean
 }

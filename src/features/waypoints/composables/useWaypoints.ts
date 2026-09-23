@@ -1,7 +1,10 @@
 import { computed, ref, watch, type Ref } from 'vue'
 
 import type { Ship } from '@/features/fleet/types/ship'
-import { fetchSystemWaypoints } from '@/features/waypoints/api/waypointsApi'
+import {
+  fetchSystemWaypoints,
+  fetchWaypointCoordinates,
+} from '@/features/waypoints/api/waypointsApi'
 import type { WaypointSummary } from '@/features/waypoints/types/waypoint'
 
 /**
@@ -82,6 +85,41 @@ export function useWaypoints(ship: Ref<Ship | null>) {
     { immediate: true },
   )
 
+  // The point every row's distance is measured from. Tracked separately from the list above:
+  // it needs to update whenever the ship's own waypoint changes (not just its system or flight
+  // mode), and — like the "Here" badge — is only meaningful once the ship has actually arrived
+  // somewhere. Mid-transit, `nav.waypointSymbol` is the *destination*, not a real position, so
+  // there is no location to measure distances from until it lands.
+  const originCoordinates = ref<{ x: number; y: number } | null>(null)
+  let originController: AbortController | null = null
+
+  watch(
+    () =>
+      ship.value && ship.value.nav.status !== 'IN_TRANSIT'
+        ? `${ship.value.nav.systemSymbol}|${ship.value.nav.waypointSymbol}`
+        : null,
+    (key) => {
+      originController?.abort()
+      if (!key || !ship.value) {
+        originCoordinates.value = null
+        return
+      }
+      originController = new AbortController()
+      const { signal } = originController
+      const { systemSymbol, waypointSymbol } = ship.value.nav
+      fetchWaypointCoordinates(systemSymbol, waypointSymbol, signal)
+        .then((coordinates) => {
+          if (!signal.aborted) originCoordinates.value = coordinates
+        })
+        .catch(() => {
+          // Best-effort, like the rest of this composable's error handling: distances just
+          // don't show for this ship rather than blocking or erroring the whole panel.
+          if (!signal.aborted) originCoordinates.value = null
+        })
+    },
+    { immediate: true },
+  )
+
   return {
     waypoints,
     total,
@@ -92,5 +130,6 @@ export function useWaypoints(ship: Ref<Ship | null>) {
     hasMore,
     loadNextPage,
     retry,
+    originCoordinates,
   }
 }

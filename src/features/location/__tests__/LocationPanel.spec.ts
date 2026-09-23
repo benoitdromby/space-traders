@@ -66,10 +66,10 @@ describe('LocationPanel', () => {
     expect(text).toContain('X1-XZ48-A1')
     expect(text).toContain('Planet')
     expect(text).toContain('GALACTIC')
-    expect(text).toContain('Marketplace')
+    expect(wrapper.find('button[title="Marketplace"]').exists()).toBe(true)
   })
 
-  it('shows the marketplace indicator only when the waypoint has one', async () => {
+  it('shows the marketplace button only when the waypoint has one', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockImplementation(async (input: string) => {
@@ -78,7 +78,7 @@ describe('LocationPanel', () => {
       }),
     )
     const wrapper = await mountPanel({ ship: makeShip(1), fleetLoaded: true })
-    expect(wrapper.text()).not.toContain('Marketplace')
+    expect(wrapper.find('button[title="Marketplace"]').exists()).toBe(false)
   })
 
   it('shows an error with a retry button', async () => {
@@ -124,5 +124,60 @@ describe('LocationPanel', () => {
     await flushPromises()
 
     expect(stub.mock.calls.some(([url]) => String(url).includes('X1-XZ48-B2'))).toBe(true)
+  })
+
+  describe('marketplace button', () => {
+    /** Stubs the location endpoints (as `mockLocationApi` does) plus the market endpoint. */
+    function mockLocationAndMarketApi() {
+      const stub = vi.fn().mockImplementation(async (input: string) => {
+        if (input.includes('/market')) {
+          return new Response(
+            JSON.stringify({
+              data: {
+                symbol: 'X1-XZ48-A1',
+                exports: [],
+                imports: [],
+                exchange: [],
+                tradeGoods: [
+                  {
+                    symbol: 'FUEL',
+                    type: 'EXCHANGE',
+                    tradeVolume: 180,
+                    supply: 'MODERATE',
+                    purchasePrice: 72,
+                    sellPrice: 68,
+                  },
+                ],
+              },
+            }),
+          )
+        }
+        const body = input.includes('/waypoints/') ? WAYPOINT : SYSTEM
+        return new Response(JSON.stringify({ data: body }))
+      })
+      vi.stubGlobal('fetch', stub)
+      return stub
+    }
+
+    it('opens the market for the current waypoint when clicked', async () => {
+      mockLocationAndMarketApi()
+      const wrapper = await mountPanel({ ship: makeShip(1), fleetLoaded: true })
+
+      await wrapper.find('button[title="Marketplace"]').trigger('click')
+      await flushPromises()
+
+      expect(wrapper.find('dialog').element.open).toBe(true)
+      expect(wrapper.text()).toContain('FUEL')
+      expect(wrapper.text()).toContain('$72')
+    })
+
+    it('is disabled while the ship is still travelling there', async () => {
+      mockLocationAndMarketApi()
+      const ship = makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_TRANSIT' } })
+      const wrapper = await mountPanel({ ship, fleetLoaded: true })
+
+      const button = wrapper.get('button[title="Wait until the ship arrives to view this market."]')
+      expect((button.element as HTMLButtonElement).disabled).toBe(true)
+    })
   })
 })

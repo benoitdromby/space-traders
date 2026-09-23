@@ -2,7 +2,6 @@
 import { computed, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import MarketplaceIcon from '@/components/MarketplaceIcon.vue'
 import SectionLabel from '@/components/SectionLabel.vue'
 import TravelIcon from '@/components/TravelIcon.vue'
 import VirtualList from '@/components/VirtualList.vue'
@@ -10,6 +9,7 @@ import { InsufficientFuelError } from '@/features/fleet/api/fleetApi'
 import { useFleetStore } from '@/features/fleet/stores/fleetStore'
 import type { Ship } from '@/features/fleet/types/ship'
 import { useWaypoints } from '@/features/waypoints/composables/useWaypoints'
+import type { WaypointSummary } from '@/features/waypoints/types/waypoint'
 import { humanize } from '@/utils/humanize'
 
 const props = defineProps<{
@@ -21,8 +21,27 @@ const props = defineProps<{
 const { t } = useI18n()
 const fleet = useFleetStore()
 
-const { waypoints, total, loaded, loadError, moreError, loadingMore, loadNextPage, retry } =
-  useWaypoints(toRef(props, 'ship'))
+const {
+  waypoints,
+  total,
+  loaded,
+  loadError,
+  moreError,
+  loadingMore,
+  loadNextPage,
+  retry,
+  originCoordinates,
+} = useWaypoints(toRef(props, 'ship'))
+
+// Straight-line distance from wherever the ship actually is right now, in the same unitless grid
+// the API itself gives coordinates in. Null whenever there's no fixed point to measure from yet
+// (no ship, still loading, or mid-transit — see `originCoordinates` for why).
+function distanceTo(item: WaypointSummary): number | null {
+  if (!originCoordinates.value) return null
+  return Math.round(
+    Math.hypot(item.x - originCoordinates.value.x, item.y - originCoordinates.value.y),
+  )
+}
 
 // True before the fleet has loaded at all, and while this system's first page is being fetched.
 const loading = computed(
@@ -178,9 +197,11 @@ async function travelTo(waypointSymbol: string) {
                 }}<template v-if="item.faction"> · {{ item.faction }}</template>
               </span>
             </span>
-            <span v-if="item.hasMarketplace" class="inline-flex shrink-0 items-center">
-              <MarketplaceIcon class="size-3.5 text-accent" />
-              <span class="sr-only">{{ t('location.marketplace') }}</span>
+            <span
+              v-if="distanceTo(item) !== null"
+              class="shrink-0 font-mono text-[10px] text-ink-dim tabular-nums"
+            >
+              {{ t('waypoints.distance') }} {{ distanceTo(item) }}
             </span>
             <span
               v-if="item.symbol === currentWaypointSymbol"

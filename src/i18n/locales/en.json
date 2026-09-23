@@ -32,7 +32,8 @@
     "faction": "Faction"
   },
   "common": {
-    "retry": "Retry"
+    "retry": "Retry",
+    "close": "Close"
   },
   "fleet": {
     "title": "Fleet",
@@ -73,6 +74,7 @@
     "waypoints": "Waypoints",
     "faction": "Faction",
     "marketplace": "Marketplace",
+    "marketRequiresArrival": "Wait until the ship arrives to view this market.",
     "noShip": "No ship to show a location for.",
     "error": "Could not load this location."
   },
@@ -82,11 +84,22 @@
     "empty": "This system has no waypoints.",
     "error": "Could not load waypoints.",
     "moreError": "Could not load more waypoints.",
+    "distance": "Distance:",
     "travelTo": "Travel to {waypoint}",
     "travelRequiresOrbit": "The ship must be in orbit to travel.",
     "traveling": "In transit to {waypoint}…",
     "insufficientFuel": "Not enough fuel to reach {waypoint}: needs {required}, has {available}.",
     "travelError": "Could not start travel. Try again."
+  },
+  "market": {
+    "title": "Marketplace",
+    "itemColumn": "Exchange",
+    "buy": "Buy",
+    "sell": "Sell",
+    "imports": "Imports",
+    "exports": "Exports",
+    "error": "Could not load this market.",
+    "empty": "No trade data available for this market."
   },
   "error": {
     "backHome": "Back to home",

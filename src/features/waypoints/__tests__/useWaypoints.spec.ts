@@ -7,6 +7,7 @@ import { WAYPOINTS_PAGE_LIMIT } from '@/features/waypoints/api/waypointsApi'
 import { useWaypoints } from '@/features/waypoints/composables/useWaypoints'
 
 import {
+  makeWaypoint,
   makeWaypoints,
   mockWaypointsApi,
   requestedWaypointPages,
@@ -209,5 +210,56 @@ describe('useWaypoints', () => {
     list.retry()
     await vi.waitFor(() => expect(list.loaded.value).toBe(true))
     expect(list.loadError.value).toBe(false)
+  })
+
+  describe('originCoordinates', () => {
+    it("resolves to the ship's own waypoint coordinates", async () => {
+      mockWaypointsApi('X1-XZ48', [
+        makeWaypoint(1, { symbol: 'X1-XZ48-A1', x: 12, y: -8 }), // the ship's own waypoint by default
+        makeWaypoint(2, { symbol: 'X1-XZ48-A2' }),
+      ])
+      const ship = ref(makeShip(1))
+      const { originCoordinates } = useWaypoints(ship)
+
+      await vi.waitFor(() => expect(originCoordinates.value).not.toBeNull())
+      expect(originCoordinates.value).toEqual({ x: 12, y: -8 })
+    })
+
+    it('stays null while the ship has no fixed location to measure from (mid-transit)', async () => {
+      mockWaypointsApi('X1-XZ48', [makeWaypoint(1, { symbol: 'X1-XZ48-A1' })])
+      const ship = ref(makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_TRANSIT' } }))
+      const { originCoordinates, loaded } = useWaypoints(ship)
+
+      await vi.waitFor(() => expect(loaded.value).toBe(true))
+      expect(originCoordinates.value).toBeNull()
+    })
+
+    it("re-fetches when just the ship's own waypoint changes — unlike the list itself", async () => {
+      const stub = mockWaypointsApi('X1-XZ48', [
+        makeWaypoint(1, { symbol: 'X1-XZ48-A1', x: 0, y: 0 }),
+        makeWaypoint(2, { symbol: 'X1-XZ48-A2', x: 3, y: 4 }),
+      ])
+      const ship = ref(makeShip(1))
+      const { originCoordinates, waypoints } = useWaypoints(ship)
+      await vi.waitFor(() => expect(originCoordinates.value).toEqual({ x: 0, y: 0 }))
+      stub.mockClear()
+
+      ship.value = makeShip(1, { nav: { ...makeShip(1).nav, waypointSymbol: 'X1-XZ48-A2' } })
+      await vi.waitFor(() => expect(originCoordinates.value).toEqual({ x: 3, y: 4 }))
+
+      // Same system, same flight mode: the paginated list itself has no reason to reload.
+      expect(waypoints.value).toHaveLength(2)
+      expect(requestedWaypointPages(stub)).toEqual([])
+    })
+
+    it('falls back to null if the fetch for it fails', async () => {
+      // The list loads fine, but the ship's own waypoint isn't in it (a stale/unknown symbol).
+      mockWaypointsApi('X1-XZ48', [makeWaypoint(1, { symbol: 'X1-XZ48-OTHER' })])
+      const ship = ref(makeShip(1)) // nav.waypointSymbol: X1-XZ48-A1, never mocked
+      const { originCoordinates, loaded } = useWaypoints(ship)
+
+      await vi.waitFor(() => expect(loaded.value).toBe(true))
+      expect(originCoordinates.value).toBeNull()
+    })
   })
 })

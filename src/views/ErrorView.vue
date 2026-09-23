@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 import AppTopbar from '@/components/AppTopbar.vue'
@@ -13,7 +13,6 @@ import { hasHomeLink } from '@/router/errorReasons'
 // need to care which.
 const props = defineProps<{ reason: string }>()
 
-const router = useRouter()
 const { t, te } = useI18n()
 const auth = useAuthStore()
 
@@ -25,9 +24,11 @@ const content = computed(() => {
 })
 const showHomeLink = computed(() => hasHomeLink(props.reason))
 
-async function disconnect() {
+// Just the state change — App.vue's own watcher on `auth.isConnected` is what navigates back to
+// the splash page. See DashboardView.vue's disconnect() for why this doesn't also call
+// router.replace() itself.
+function disconnect() {
   auth.disconnect()
-  await router.replace({ name: 'splash' })
 }
 </script>
 
