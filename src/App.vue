@@ -2,8 +2,8 @@
 import { watch } from 'vue'
 import { RouterView, useRouter } from 'vue-router'
 
-import LoadingScreen from '@/components/LoadingScreen.vue'
-import StarField from '@/components/StarField.vue'
+import LoadingScreen from '@/components/loading/LoadingScreen.vue'
+import StarField from '@/components/effects/StarField.vue'
 import ToastHost from '@/errors/components/ToastHost.vue'
 import { useAuthStore } from '@/features/auth/stores/authStore'
 

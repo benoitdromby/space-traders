@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
-import AppTopbar from '@/components/AppTopbar.vue'
+import AppTopbar from '@/components/layout/AppTopbar.vue'
 import AgentSummary from '@/features/auth/components/AgentSummary.vue'
 import { useAuthStore } from '@/features/auth/stores/authStore'
 import { hasHomeLink } from '@/router/errorReasons'

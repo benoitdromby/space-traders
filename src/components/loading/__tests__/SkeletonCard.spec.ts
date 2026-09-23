@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 
-import SkeletonCard from '@/components/SkeletonCard.vue'
+import SkeletonCard from '@/components/loading/SkeletonCard.vue'
 
 describe('SkeletonCard', () => {
   it('is hidden from assistive technology', () => {

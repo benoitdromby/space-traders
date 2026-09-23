@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import BrandName from '@/components/BrandName.vue'
-import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
+import BrandName from '@/components/brand/BrandName.vue'
+import LanguageSwitcher from '@/components/controls/LanguageSwitcher.vue'
 </script>
 
 <template>

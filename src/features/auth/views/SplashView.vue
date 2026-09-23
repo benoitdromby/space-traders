@@ -2,9 +2,9 @@
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
-import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
-import LogoMark from '@/components/LogoMark.vue'
-import BrandName from '@/components/BrandName.vue'
+import LanguageSwitcher from '@/components/controls/LanguageSwitcher.vue'
+import LogoMark from '@/components/brand/LogoMark.vue'
+import BrandName from '@/components/brand/BrandName.vue'
 
 import TokenForm from '@/features/auth/components/TokenForm.vue'
 import { useAuthStore } from '@/features/auth/stores/authStore'

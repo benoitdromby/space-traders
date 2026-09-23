@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import CloseIcon from '@/components/CloseIcon.vue'
-import ModalDialog from '@/components/ModalDialog.vue'
+import CloseIcon from '@/components/icons/CloseIcon.vue'
+import ModalDialog from '@/components/overlays/ModalDialog.vue'
 import { useMarket } from '@/features/market/composables/useMarket'
 import type { MarketGoodType } from '@/features/market/types/market'
 

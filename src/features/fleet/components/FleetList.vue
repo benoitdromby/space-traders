@@ -3,9 +3,9 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-import PaginationControls from '@/components/PaginationControls.vue'
-import SectionLabel from '@/components/SectionLabel.vue'
-import SkeletonCard from '@/components/SkeletonCard.vue'
+import PaginationControls from '@/components/lists/PaginationControls.vue'
+import SectionLabel from '@/components/typography/SectionLabel.vue'
+import SkeletonCard from '@/components/loading/SkeletonCard.vue'
 
 import { useFleetActions } from '@/features/fleet/composables/useFleetActions'
 import { PAGE_SIZE, useFleetStore } from '@/features/fleet/stores/fleetStore'

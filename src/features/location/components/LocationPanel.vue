@@ -2,8 +2,8 @@
 import { computed, ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import MarketplaceIcon from '@/components/MarketplaceIcon.vue'
-import SectionLabel from '@/components/SectionLabel.vue'
+import MarketplaceIcon from '@/components/icons/MarketplaceIcon.vue'
+import SectionLabel from '@/components/typography/SectionLabel.vue'
 import type { Ship } from '@/features/fleet/types/ship'
 import { useShipLocation } from '@/features/location/composables/useShipLocation'
 import LocationField from '@/features/location/components/LocationField.vue'

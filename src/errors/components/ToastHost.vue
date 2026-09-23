@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 
-import CloseIcon from '@/components/CloseIcon.vue'
+import CloseIcon from '@/components/icons/CloseIcon.vue'
 import { dismissToast, useToasts } from '@/errors/toasts'
 
 const { t } = useI18n()

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 
-import ModalDialog from '@/components/ModalDialog.vue'
+import ModalDialog from '@/components/overlays/ModalDialog.vue'
 
 function mountDialog(open: boolean) {
   return mount(ModalDialog, {

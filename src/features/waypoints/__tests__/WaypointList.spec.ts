@@ -3,7 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { flushPromises, mount } from '@vue/test-utils'
 
 import { mockFetch } from '@/__tests__/helpers'
-import VirtualList from '@/components/VirtualList.vue'
+import VirtualList from '@/components/lists/VirtualList.vue'
 import { makeShip } from '@/features/fleet/__tests__/fixtures'
 import { useFleetStore } from '@/features/fleet/stores/fleetStore'
 import { i18n } from '@/i18n'

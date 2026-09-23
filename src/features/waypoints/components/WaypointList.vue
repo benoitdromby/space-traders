@@ -2,9 +2,9 @@
 import { computed, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import SectionLabel from '@/components/SectionLabel.vue'
-import TravelIcon from '@/components/TravelIcon.vue'
-import VirtualList from '@/components/VirtualList.vue'
+import SectionLabel from '@/components/typography/SectionLabel.vue'
+import TravelIcon from '@/components/icons/TravelIcon.vue'
+import VirtualList from '@/components/lists/VirtualList.vue'
 import type { Ship } from '@/features/fleet/types/ship'
 import { useShipTravel } from '@/features/waypoints/composables/useShipTravel'
 import { useWaypoints } from '@/features/waypoints/composables/useWaypoints'

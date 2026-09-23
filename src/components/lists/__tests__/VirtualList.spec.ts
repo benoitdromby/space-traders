@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 
-import VirtualList from '@/components/VirtualList.vue'
+import VirtualList from '@/components/lists/VirtualList.vue'
 
 /** jsdom never reports a real `clientHeight`: fake one and re-trigger the component's own measure. */
 function setClientHeight(el: HTMLElement, height: number) {
