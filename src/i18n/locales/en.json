@@ -33,7 +33,8 @@
   },
   "common": {
     "retry": "Retry",
-    "close": "Close"
+    "close": "Close",
+    "unexpectedError": "Something went wrong. Please try again."
   },
   "fleet": {
     "title": "Fleet",

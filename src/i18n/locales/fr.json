@@ -33,7 +33,8 @@
   },
   "common": {
     "retry": "Réessayer",
-    "close": "Fermer"
+    "close": "Fermer",
+    "unexpectedError": "Une erreur est survenue. Veuillez réessayer."
   },
   "fleet": {
     "title": "Flotte",

@@ -4,6 +4,7 @@ import { RouterView, useRouter } from 'vue-router'
 
 import LoadingScreen from '@/components/LoadingScreen.vue'
 import StarField from '@/components/StarField.vue'
+import ToastHost from '@/errors/components/ToastHost.vue'
 import { useAuthStore } from '@/features/auth/stores/authStore'
 
 const auth = useAuthStore()
@@ -24,4 +25,5 @@ watch(
   <StarField />
   <LoadingScreen v-if="auth.connecting" />
   <RouterView v-else />
+  <ToastHost />
 </template>
