@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { ref, watch } from 'vue'
 import { RouterView, useRouter } from 'vue-router'
 
 import LoadingScreen from '@/components/loading/LoadingScreen.vue'
@@ -19,11 +19,22 @@ watch(
     }
   },
 )
+
+// Covers only the very first paint: the router's first navigation (which, for a stored token,
+// includes `auth.restore()` plus loading the fleet) resolves before anything else has ever been
+// shown, so there'd otherwise be a blank screen rather than nothing to fall back to. Once that's
+// resolved, this never shows again — later loading (reconnecting on the splash page, the
+// dashboard's own fetches) has its own local, page-level indicator instead, so it doesn't flash
+// this full-screen one over whatever the user is already looking at.
+const initialNavigationReady = ref(false)
+void router.isReady().then(() => {
+  initialNavigationReady.value = true
+})
 </script>
 
 <template>
   <StarField />
-  <LoadingScreen v-if="auth.connecting" />
+  <LoadingScreen v-if="!initialNavigationReady" />
   <RouterView v-else />
   <ToastHost />
 </template>

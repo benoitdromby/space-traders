@@ -71,4 +71,40 @@ describe('App', () => {
 
     expect(router.currentRoute.value.name).toBe('ship')
   })
+
+  // Regression coverage: this full-screen state used to also cover the splash page's own
+  // "connecting" moment, which (since navigation hadn't happened yet) handed back to the router
+  // for an instant mid-connect and flashed the splash page again before the dashboard took over.
+  it('shows the loading screen only until the router settles its first navigation', async () => {
+    setActivePinia(createPinia())
+    const router = testRouter()
+    // Deliberately not awaited/pushed to beforehand, unlike every other test here: this is
+    // exactly the gap the loading screen exists to cover, before the router has resolved
+    // *anything* yet (its own implicit initial navigation to the starting location).
+    const wrapper = mount(App, { global: { plugins: [router, i18n] } })
+
+    expect(wrapper.find('[role="status"]').exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('Splash')
+
+    await router.isReady()
+    await flushPromises()
+
+    expect(wrapper.find('[role="status"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Splash')
+  })
+
+  it('does not bring the loading screen back for a later reconnect once the app has loaded', async () => {
+    setActivePinia(createPinia())
+    const auth = useAuthStore()
+    const router = testRouter()
+    await router.push('/')
+    const wrapper = mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    auth.connecting = true // e.g. resubmitting a token from the splash page
+    await flushPromises()
+
+    expect(wrapper.find('[role="status"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Splash')
+  })
 })

@@ -10,7 +10,8 @@
     "tokenLabel": "Your API token",
     "tokenPlaceholder": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9…",
     "tokenHint": "Your token stays in this browser tab and is forgotten when you close it.",
-    "connect": "Connect"
+    "connect": "Connect",
+    "connecting": "Connecting…"
   },
   "loading": {
     "authenticating": "Authenticating agent…",

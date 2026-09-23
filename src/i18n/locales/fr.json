@@ -10,7 +10,8 @@
     "tokenLabel": "Votre jeton d'API",
     "tokenPlaceholder": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9…",
     "tokenHint": "Votre jeton reste dans cet onglet du navigateur et est oublié à sa fermeture.",
-    "connect": "Se connecter"
+    "connect": "Se connecter",
+    "connecting": "Connexion…"
   },
   "loading": {
     "authenticating": "Authentification de l'agent…",
