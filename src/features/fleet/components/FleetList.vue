@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -7,9 +7,9 @@ import PaginationControls from '@/components/PaginationControls.vue'
 import SectionLabel from '@/components/SectionLabel.vue'
 import SkeletonCard from '@/components/SkeletonCard.vue'
 
+import { useFleetActions } from '@/features/fleet/composables/useFleetActions'
 import { PAGE_SIZE, useFleetStore } from '@/features/fleet/stores/fleetStore'
 import ShipCard from '@/features/fleet/components/ShipCard.vue'
-import type { FlightMode } from '@/features/fleet/types/ship'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -27,37 +27,14 @@ function selectShip(symbol: string) {
   void router.push({ name: 'ship', params: { symbol } })
 }
 
-// Per-ship, not global: one ship's request in flight (or failed) shouldn't affect how any other
-// ship's card looks. Dock/orbit and flight mode are tracked separately since either can be in
-// flight (or have failed) independently of the other, for the same ship.
-const togglingSymbols = ref(new Set<string>())
-const toggleErrors = reactive<Record<string, string>>({})
-const changingModeSymbols = ref(new Set<string>())
-const modeErrors = reactive<Record<string, string>>({})
-
-async function toggleDocking(symbol: string) {
-  togglingSymbols.value.add(symbol)
-  delete toggleErrors[symbol]
-  try {
-    await fleet.toggleDocking(symbol)
-  } catch {
-    toggleErrors[symbol] = t('fleet.actions.error')
-  } finally {
-    togglingSymbols.value.delete(symbol)
-  }
-}
-
-async function changeFlightMode(symbol: string, mode: FlightMode) {
-  changingModeSymbols.value.add(symbol)
-  delete modeErrors[symbol]
-  try {
-    await fleet.changeFlightMode(symbol, mode)
-  } catch {
-    modeErrors[symbol] = t('fleet.actions.error')
-  } finally {
-    changingModeSymbols.value.delete(symbol)
-  }
-}
+const {
+  togglingSymbols,
+  toggleErrors,
+  changingModeSymbols,
+  modeErrors,
+  toggleDocking,
+  changeFlightMode,
+} = useFleetActions()
 </script>
 
 <template>

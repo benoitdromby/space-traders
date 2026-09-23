@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { computed, ref, toRef, watch } from 'vue'
+import { computed, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import SectionLabel from '@/components/SectionLabel.vue'
 import TravelIcon from '@/components/TravelIcon.vue'
 import VirtualList from '@/components/VirtualList.vue'
-import { InsufficientFuelError } from '@/features/fleet/api/fleetApi'
-import { useFleetStore } from '@/features/fleet/stores/fleetStore'
 import type { Ship } from '@/features/fleet/types/ship'
+import { useShipTravel } from '@/features/waypoints/composables/useShipTravel'
 import { useWaypoints } from '@/features/waypoints/composables/useWaypoints'
 import type { WaypointSummary } from '@/features/waypoints/types/waypoint'
+import { distanceBetween } from '@/utils/distance'
 import { humanize } from '@/utils/humanize'
 
 const props = defineProps<{
@@ -19,7 +19,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
-const fleet = useFleetStore()
+const shipRef = toRef(props, 'ship')
 
 const {
   waypoints,
@@ -31,16 +31,14 @@ const {
   loadNextPage,
   retry,
   originCoordinates,
-} = useWaypoints(toRef(props, 'ship'))
+} = useWaypoints(shipRef)
 
-// Straight-line distance from wherever the ship actually is right now, in the same unitless grid
-// the API itself gives coordinates in. Null whenever there's no fixed point to measure from yet
-// (no ship, still loading, or mid-transit — see `originCoordinates` for why).
+const { travelPending, travelError, travelFailed, travelTo } = useShipTravel(shipRef)
+
+// Null whenever there's no fixed point to measure from yet (no ship, still loading, or
+// mid-transit — see `originCoordinates` for why).
 function distanceTo(item: WaypointSummary): number | null {
-  if (!originCoordinates.value) return null
-  return Math.round(
-    Math.hypot(item.x - originCoordinates.value.x, item.y - originCoordinates.value.y),
-  )
+  return originCoordinates.value ? distanceBetween(item, originCoordinates.value) : null
 }
 
 // True before the fleet has loaded at all, and while this system's first page is being fetched.
@@ -61,43 +59,6 @@ const traveling = computed(() => props.ship?.nav.status === 'IN_TRANSIT')
 const currentWaypointSymbol = computed(() =>
   props.ship && props.ship.nav.status !== 'IN_TRANSIT' ? props.ship.nav.waypointSymbol : null,
 )
-
-const travelPending = ref(false)
-const travelError = ref<{ waypoint: string; fuelRequired: number; fuelAvailable: number } | null>(
-  null,
-)
-const travelFailed = ref(false)
-
-// A leftover error from a previous ship shouldn't linger once a different one is selected.
-watch(
-  () => props.ship?.symbol,
-  () => {
-    travelError.value = null
-    travelFailed.value = false
-  },
-)
-
-async function travelTo(waypointSymbol: string) {
-  if (!props.ship || travelPending.value) return
-  travelError.value = null
-  travelFailed.value = false
-  travelPending.value = true
-  try {
-    await fleet.navigateShip(props.ship.symbol, waypointSymbol)
-  } catch (error) {
-    if (error instanceof InsufficientFuelError) {
-      travelError.value = {
-        waypoint: waypointSymbol,
-        fuelRequired: error.fuelRequired,
-        fuelAvailable: error.fuelAvailable,
-      }
-    } else {
-      travelFailed.value = true
-    }
-  } finally {
-    travelPending.value = false
-  }
-}
 </script>
 
 <template>
