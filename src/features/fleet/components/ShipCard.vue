@@ -2,7 +2,12 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { Ship, ShipStatus } from '@/features/fleet/types/ship'
+import {
+  FLIGHT_MODES,
+  type FlightMode,
+  type Ship,
+  type ShipStatus,
+} from '@/features/fleet/types/ship'
 import ShipFrameIcon from '@/features/fleet/components/ShipFrameIcon.vue'
 import StatBar from '@/features/fleet/components/StatBar.vue'
 
@@ -13,8 +18,16 @@ const props = defineProps<{
   toggling: boolean
   /** The message from this ship's last failed dock/orbit request, if any. */
   toggleError: string | null
+  /** A flight mode change for this ship is in flight. */
+  changingMode: boolean
+  /** The message from this ship's last failed flight mode change, if any. */
+  modeError: string | null
 }>()
-const emit = defineEmits<{ select: [symbol: string]; 'toggle-docking': [symbol: string] }>()
+const emit = defineEmits<{
+  select: [symbol: string]
+  'toggle-docking': [symbol: string]
+  'change-flight-mode': [symbol: string, mode: FlightMode]
+}>()
 
 const { t, te } = useI18n()
 
@@ -30,11 +43,16 @@ const statusLabel = computed(() => {
 })
 
 // Docking/orbiting only makes sense at a waypoint: a ship en route has nowhere to send that
-// request until it arrives.
+// request until it arrives. Flight mode has no such restriction — it can change mid-transit too.
 const canToggleDocking = computed(() => props.ship.nav.status !== 'IN_TRANSIT')
 const toggleLabel = computed(() =>
   t(props.ship.nav.status === 'DOCKED' ? 'fleet.actions.enterOrbit' : 'fleet.actions.dock'),
 )
+
+function onFlightModeChange(event: Event) {
+  const mode = (event.target as HTMLSelectElement).value as FlightMode
+  if (mode !== props.ship.nav.flightMode) emit('change-flight-mode', props.ship.symbol, mode)
+}
 </script>
 
 <template>
@@ -72,16 +90,11 @@ const toggleLabel = computed(() =>
             {{ ship.frame.name }}
           </span>
         </span>
-        <span class="flex shrink-0 gap-1.5 font-mono text-[9px] font-bold tracking-[0.06em]">
-          <span
-            class="rounded-[3px] px-1.5 py-0.5 uppercase"
-            :class="STATUS_STYLES[ship.nav.status]"
-          >
-            {{ statusLabel }}
-          </span>
-          <span class="rounded-[3px] border border-line bg-void px-1.5 py-0.5 text-ink-dim">
-            {{ ship.nav.flightMode }}
-          </span>
+        <span
+          class="shrink-0 rounded-[3px] px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-[0.06em] uppercase"
+          :class="STATUS_STYLES[ship.nav.status]"
+        >
+          {{ statusLabel }}
         </span>
       </span>
 
@@ -111,14 +124,23 @@ const toggleLabel = computed(() =>
       </span>
     </button>
 
-    <div
-      v-if="canToggleDocking"
-      class="flex items-center justify-end gap-2 border-t border-line px-3.5 py-2"
-    >
-      <p v-if="toggleError" role="alert" class="mr-auto text-[10px] text-danger">
-        {{ toggleError }}
-      </p>
+    <!--
+      Outside the button above, not inside it: a <select> (and the dock/orbit <button> below)
+      count as interactive content, which a <button> element isn't allowed to contain.
+    -->
+    <div class="flex flex-wrap items-center justify-between gap-2 border-t border-line px-3.5 py-2">
+      <select
+        :value="ship.nav.flightMode"
+        :disabled="changingMode"
+        :aria-label="t('fleet.actions.flightMode')"
+        class="cursor-pointer rounded-[4px] border border-line bg-void px-1.5 py-1 font-mono text-[10px] font-bold tracking-[0.06em] text-ink-dim uppercase outline-none focus:border-accent disabled:cursor-default disabled:opacity-50"
+        @change="onFlightModeChange"
+      >
+        <option v-for="mode in FLIGHT_MODES" :key="mode" :value="mode">{{ mode }}</option>
+      </select>
+
       <button
+        v-if="canToggleDocking"
         type="button"
         :disabled="toggling"
         class="cursor-pointer rounded-[4px] border px-2.5 py-1 font-mono text-[10px] font-bold tracking-[0.06em] uppercase transition-colors disabled:cursor-default disabled:opacity-50"
@@ -132,5 +154,9 @@ const toggleLabel = computed(() =>
         {{ toggling ? t('fleet.actions.pending') : toggleLabel }}
       </button>
     </div>
+
+    <p v-if="toggleError || modeError" role="alert" class="px-3.5 pb-2 text-[10px] text-danger">
+      {{ toggleError || modeError }}
+    </p>
   </li>
 </template>

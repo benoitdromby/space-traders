@@ -160,4 +160,23 @@ describe('FleetList', () => {
     expect(card().find('[role="alert"]').exists()).toBe(false)
     expect(card().text()).toContain('Dock')
   })
+
+  it("changing one ship's flight mode does not disturb the others, and reports its own error", async () => {
+    mockFleetWithActions(makeFleet(2))
+    const wrapper = await mountFleet()
+    const cards = () => wrapper.findAll('li')
+
+    await cards()[0]!.find('select').setValue('BURN')
+    await flushPromises()
+
+    expect((cards()[0]!.find('select').element as HTMLSelectElement).value).toBe('BURN')
+    expect((cards()[1]!.find('select').element as HTMLSelectElement).value).toBe('CRUISE')
+
+    mockFetch(500, {})
+    await cards()[0]!.find('select').setValue('DRIFT')
+    await flushPromises()
+
+    expect(cards()[0]!.find('[role="alert"]').text()).toContain('Could not update this ship.')
+    expect(cards()[1]!.find('[role="alert"]').exists()).toBe(false)
+  })
 })

@@ -8,25 +8,40 @@ import { makeShip } from '@/features/fleet/__tests__/fixtures'
 
 function mountCard(
   ship = makeShip(1),
-  props: { selected?: boolean; toggling?: boolean; toggleError?: string | null } = {},
+  props: {
+    selected?: boolean
+    toggling?: boolean
+    toggleError?: string | null
+    changingMode?: boolean
+    modeError?: string | null
+  } = {},
 ) {
   i18n.global.locale.value = 'en'
   return mount(ShipCard, {
-    props: { ship, selected: false, toggling: false, toggleError: null, ...props },
+    props: {
+      ship,
+      selected: false,
+      toggling: false,
+      toggleError: null,
+      changingMode: false,
+      modeError: null,
+      ...props,
+    },
     global: { plugins: [i18n] },
   })
 }
 
 describe('ShipCard', () => {
   it('shows the ship details', () => {
-    const text = mountCard().text()
+    const wrapper = mountCard()
+    const text = wrapper.text()
     expect(text).toContain('LEO-1')
     expect(text).toContain('Frigate')
     expect(text).toContain('Docked')
-    expect(text).toContain('CRUISE')
     expect(text).toContain('X1-XZ48-A1')
     expect(text).toContain('25%') // cargo 10 / 40
     expect(text).toContain('75%') // fuel 300 / 400
+    expect((wrapper.find('select').element as HTMLSelectElement).value).toBe('CRUISE')
   })
 
   it('translates the status', () => {
@@ -83,6 +98,49 @@ describe('ShipCard', () => {
 
     it('shows the last error', () => {
       const wrapper = mountCard(makeShip(1), { toggleError: 'Could not update this ship.' })
+      expect(wrapper.find('[role="alert"]').text()).toBe('Could not update this ship.')
+    })
+  })
+
+  describe('the flight mode control', () => {
+    it('lists all four modes and shows the current one', () => {
+      const wrapper = mountCard(makeShip(1, { nav: { ...makeShip(1).nav, flightMode: 'DRIFT' } }))
+      const select = wrapper.find('select')
+      expect(select.findAll('option').map((o) => o.element.value)).toEqual([
+        'CRUISE',
+        'BURN',
+        'DRIFT',
+        'STEALTH',
+      ])
+      expect((select.element as HTMLSelectElement).value).toBe('DRIFT')
+    })
+
+    it('is offered even while the ship is in transit, unlike dock/orbit', () => {
+      const wrapper = mountCard(makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_TRANSIT' } }))
+      expect(wrapper.find('select').exists()).toBe(true)
+    })
+
+    it('emits the ship and the newly picked mode', async () => {
+      const wrapper = mountCard(makeShip(3))
+      await wrapper.find('select').setValue('BURN')
+
+      expect(wrapper.emitted('change-flight-mode')).toEqual([['LEO-3', 'BURN']])
+    })
+
+    it('does not emit when the same mode is picked again', async () => {
+      const wrapper = mountCard(makeShip(1)) // starts at CRUISE
+      await wrapper.find('select').setValue('CRUISE')
+
+      expect(wrapper.emitted('change-flight-mode')).toBeUndefined()
+    })
+
+    it('disables the select while a change is in flight', () => {
+      const wrapper = mountCard(makeShip(1), { changingMode: true })
+      expect(wrapper.find('select').attributes('disabled')).toBeDefined()
+    })
+
+    it('shows the last error', () => {
+      const wrapper = mountCard(makeShip(1), { modeError: 'Could not update this ship.' })
       expect(wrapper.find('[role="alert"]').text()).toBe('Could not update this ship.')
     })
   })

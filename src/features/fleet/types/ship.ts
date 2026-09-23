@@ -1,5 +1,7 @@
 export type ShipStatus = 'DOCKED' | 'IN_ORBIT' | 'IN_TRANSIT'
-export type FlightMode = 'DRIFT' | 'STEALTH' | 'CRUISE' | 'BURN'
+
+export const FLIGHT_MODES = ['CRUISE', 'BURN', 'DRIFT', 'STEALTH'] as const
+export type FlightMode = (typeof FLIGHT_MODES)[number]
 
 /** The parts of `GET /my/ships` this app uses. */
 export interface Ship {

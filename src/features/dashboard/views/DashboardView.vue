@@ -8,6 +8,7 @@ import { useAuthStore } from '@/features/auth/stores/authStore'
 import FleetList from '@/features/fleet/components/FleetList.vue'
 import { useFleetStore } from '@/features/fleet/stores/fleetStore'
 import LocationPanel from '@/features/location/components/LocationPanel.vue'
+import WaypointList from '@/features/waypoints/components/WaypointList.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -38,6 +39,7 @@ async function disconnect() {
     <main class="mx-auto flex w-full max-w-175 flex-1 flex-col gap-4 p-5">
       <LocationPanel :ship="fleet.selectedShip" :fleet-loaded="fleet.loaded" />
       <FleetList />
+      <WaypointList :ship="fleet.selectedShip" :fleet-loaded="fleet.loaded" />
     </main>
   </div>
 </template>

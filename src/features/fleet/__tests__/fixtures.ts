@@ -56,22 +56,37 @@ export function mockAgentAndShipsApi(fleet: Ship[]) {
 }
 
 /**
- * Stubs `GET /my/ships` like `mockShipsApi`, plus `POST /my/ships/{symbol}/dock` and `.../orbit`:
- * flips that ship's status in `fleet` (so a later list refetch would see it too) and answers
- * with its new nav.
+ * Stubs `GET /my/ships` like `mockShipsApi`, plus `POST /my/ships/{symbol}/dock`, `.../orbit`,
+ * and `PATCH .../nav` (flight mode): applies the change to that ship in `fleet` (so a later list
+ * refetch would see it too) and answers with its new nav.
  */
 export function mockFleetWithActions(fleet: Ship[]) {
-  const stub = vi.fn().mockImplementation(async (input: string) => {
+  const stub = vi.fn().mockImplementation(async (input: string, init?: RequestInit) => {
     const url = new URL(input)
-    const action = url.pathname.match(/\/my\/ships\/([^/]+)\/(dock|orbit)$/)
-    if (action) {
-      const [, symbol, verb] = action
+
+    const dockOrOrbit = url.pathname.match(/\/my\/ships\/([^/]+)\/(dock|orbit)$/)
+    if (dockOrOrbit) {
+      const [, symbol, verb] = dockOrOrbit
       const ship = fleet.find((s) => s.symbol === symbol)
       if (!ship)
         return new Response(JSON.stringify({ error: { message: 'not found' } }), { status: 404 })
       ship.nav.status = verb === 'dock' ? 'DOCKED' : 'IN_ORBIT'
       return new Response(JSON.stringify({ data: { nav: ship.nav } }))
     }
+
+    const nav = url.pathname.match(/\/my\/ships\/([^/]+)\/nav$/)
+    if (nav) {
+      const [, symbol] = nav
+      const ship = fleet.find((s) => s.symbol === symbol)
+      if (!ship)
+        return new Response(JSON.stringify({ error: { message: 'not found' } }), { status: 404 })
+      const { flightMode } = JSON.parse(String(init?.body)) as {
+        flightMode: Ship['nav']['flightMode']
+      }
+      ship.nav.flightMode = flightMode
+      return new Response(JSON.stringify({ data: { nav: ship.nav, fuel: {}, events: [] } }))
+    }
+
     const page = Number(url.searchParams.get('page'))
     const limit = Number(url.searchParams.get('limit'))
     const data = fleet.slice((page - 1) * limit, page * limit)

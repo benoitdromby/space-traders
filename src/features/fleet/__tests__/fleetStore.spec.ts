@@ -247,4 +247,58 @@ describe('fleet store', () => {
       expect(fleet.ships[0]!.nav.status).toBe('DOCKED')
     })
   })
+
+  describe('changeFlightMode', () => {
+    it('sets the flight mode', async () => {
+      mockFleetWithActions(makeFleet(1)) // starts at CRUISE
+      const fleet = useFleetStore()
+      await fleet.load()
+
+      await fleet.changeFlightMode('LEO-1', 'BURN')
+
+      expect(fleet.ships[0]!.nav.flightMode).toBe('BURN')
+    })
+
+    it('updates the selected ship too, when it is the one changed', async () => {
+      mockFleetWithActions(makeFleet(1))
+      const fleet = useFleetStore()
+      await fleet.load()
+
+      await fleet.changeFlightMode('LEO-1', 'STEALTH')
+
+      expect(fleet.selectedShip?.nav.flightMode).toBe('STEALTH')
+    })
+
+    it('works even while the ship is in transit, unlike toggleDocking', async () => {
+      const fleetData = [makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_TRANSIT' } })]
+      mockFleetWithActions(fleetData)
+      const fleet = useFleetStore()
+      await fleet.load()
+
+      await fleet.changeFlightMode('LEO-1', 'DRIFT')
+
+      expect(fleet.ships[0]!.nav.flightMode).toBe('DRIFT')
+    })
+
+    it('does nothing for a ship that is not on the displayed page', async () => {
+      const fetchMock = mockFleetWithActions(makeFleet(1))
+      const fleet = useFleetStore()
+      await fleet.load()
+      fetchMock.mockClear()
+
+      await fleet.changeFlightMode('SOME-OTHER-SHIP', 'BURN')
+
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('throws and leaves the mode untouched on failure', async () => {
+      mockShipsApi(makeFleet(1))
+      const fleet = useFleetStore()
+      await fleet.load()
+      mockFetch(500, {})
+
+      await expect(fleet.changeFlightMode('LEO-1', 'BURN')).rejects.toBeInstanceOf(ApiError)
+      expect(fleet.ships[0]!.nav.flightMode).toBe('CRUISE')
+    })
+  })
 })

@@ -3,8 +3,8 @@ import { defineStore } from 'pinia'
 
 import { useAuthStore } from '@/features/auth/stores/authStore'
 
-import { dockShip, fetchShips, orbitShip } from '@/features/fleet/api/fleetApi'
-import type { Ship } from '@/features/fleet/types/ship'
+import { dockShip, fetchShips, orbitShip, setFlightMode } from '@/features/fleet/api/fleetApi'
+import type { FlightMode, Ship } from '@/features/fleet/types/ship'
 
 /** Ships per page. Pagination is only shown when the fleet is larger than this. */
 export const PAGE_SIZE = 3
@@ -112,6 +112,19 @@ export const useFleetStore = defineStore('fleet', () => {
     if (selectedShip.value?.symbol === symbol) selectedShip.value.nav.status = nextStatus
   }
 
+  /**
+   * Sets a ship's flight mode. Unlike `toggleDocking`, there's no status this is unavailable
+   * for — it works mid-transit too. Throws on failure, for the same reason `toggleDocking` does.
+   */
+  async function changeFlightMode(symbol: string, mode: FlightMode): Promise<void> {
+    const ship = ships.value.find((s) => s.symbol === symbol)
+    if (!ship) return
+
+    const nextMode = await setFlightMode(symbol, mode)
+    ship.nav.flightMode = nextMode
+    if (selectedShip.value?.symbol === symbol) selectedShip.value.nav.flightMode = nextMode
+  }
+
   function reset() {
     controller?.abort()
     ships.value = []
@@ -144,5 +157,6 @@ export const useFleetStore = defineStore('fleet', () => {
     load,
     selectBySymbol,
     toggleDocking,
+    changeFlightMode,
   }
 })

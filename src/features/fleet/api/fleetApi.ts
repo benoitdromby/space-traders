@@ -1,6 +1,6 @@
 import { apiRequest, type ApiEnvelope, type ApiListEnvelope } from '@/api/client'
 
-import type { Ship, ShipStatus } from '@/features/fleet/types/ship'
+import type { FlightMode, Ship, ShipStatus } from '@/features/fleet/types/ship'
 
 interface FetchShipsParams {
   page: number
@@ -35,4 +35,23 @@ export async function dockShip(symbol: string, signal?: AbortSignal): Promise<Sh
     signal,
   })
   return response.data.nav.status
+}
+
+interface FlightModeResponse {
+  nav: { flightMode: FlightMode }
+}
+
+/** Sets a ship's flight mode. Unlike dock/orbit, this works whatever the ship's status is —
+ * including mid-transit, where it changes the remaining travel time and fuel use. */
+export async function setFlightMode(
+  symbol: string,
+  flightMode: FlightMode,
+  signal?: AbortSignal,
+): Promise<FlightMode> {
+  const response = await apiRequest<ApiEnvelope<FlightModeResponse>>(`my/ships/${symbol}/nav`, {
+    method: 'PATCH',
+    body: { flightMode },
+    signal,
+  })
+  return response.data.nav.flightMode
 }

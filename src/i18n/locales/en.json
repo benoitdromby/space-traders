@@ -50,6 +50,7 @@
     "actions": {
       "enterOrbit": "Enter orbit",
       "dock": "Dock",
+      "flightMode": "Flight mode",
       "pending": "Updating…",
       "error": "Could not update this ship. Try again."
     }
@@ -73,6 +74,13 @@
     "marketplace": "Marketplace",
     "noShip": "No ship to show a location for.",
     "error": "Could not load this location."
+  },
+  "waypoints": {
+    "title": "Waypoints",
+    "here": "Here",
+    "empty": "This system has no waypoints.",
+    "error": "Could not load waypoints.",
+    "moreError": "Could not load more waypoints."
   },
   "error": {
     "backHome": "Back to home",
