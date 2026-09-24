@@ -166,18 +166,17 @@ describe('WaypointList', () => {
     expect(second).toHaveBeenCalled()
   })
 
-  it("reloads when only the selected ship's flight mode changes", async () => {
+  it("does not reload when only the selected ship's flight mode changes", async () => {
     const first = mockWaypointsApi('X1-XZ48', makeWaypoints(2))
     const wrapper = await mountList({ ship: makeShip(1), fleetLoaded: true })
     first.mockClear()
 
-    const second = mockWaypointsApi('X1-XZ48', makeWaypoints(2))
     await wrapper.setProps({
       ship: makeShip(1, { nav: { ...makeShip(1).nav, flightMode: 'BURN' } }),
     })
     await flushPromises()
 
-    expect(second).toHaveBeenCalled()
+    expect(first).not.toHaveBeenCalled()
   })
 
   describe('travel', () => {

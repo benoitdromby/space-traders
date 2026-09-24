@@ -14,7 +14,8 @@ import type { WaypointSummary } from '@/features/waypoints/types/waypoint'
  * watching a sentinel at the end of the list) decides when the user has scrolled far enough to
  * need the next page.
  *
- * Starts over whenever the ship (or just its flight mode) changes.
+ * Starts over whenever the ship's system changes. Flight mode doesn't: it changes fuel cost and
+ * travel time, not which waypoints a system has, and distances are computed from coordinates.
  */
 export function useWaypoints(ship: Ref<Ship | null>) {
   const waypoints = ref<WaypointSummary[]>([])
@@ -70,7 +71,7 @@ export function useWaypoints(ship: Ref<Ship | null>) {
   }
 
   watch(
-    () => (ship.value ? `${ship.value.nav.systemSymbol}|${ship.value.nav.flightMode}` : null),
+    () => ship.value?.nav.systemSymbol ?? null,
     () => {
       currentSystem = ship.value?.nav.systemSymbol ?? null
       waypoints.value = []
@@ -86,8 +87,7 @@ export function useWaypoints(ship: Ref<Ship | null>) {
   )
 
   // The point every row's distance is measured from. Tracked separately from the list above:
-  // it needs to update whenever the ship's own waypoint changes (not just its system or flight
-  // mode), and — like the "Here" badge — is only meaningful once the ship has actually arrived
+  // it needs to update whenever the ship's own waypoint changes (not just its system), and — like the "Here" badge — is only meaningful once the ship has actually arrived
   // somewhere. Mid-transit, `nav.waypointSymbol` is the *destination*, not a real position, so
   // there is no location to measure distances from until it lands.
   const originCoordinates = ref<{ x: number; y: number } | null>(null)

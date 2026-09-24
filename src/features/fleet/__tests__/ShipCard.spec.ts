@@ -49,6 +49,12 @@ describe('ShipCard', () => {
     expect(wrapper.text()).toContain('In transit')
   })
 
+  it('shows no location while in transit: the ship is between waypoints', () => {
+    const wrapper = mountCard(makeShip(1, { nav: { ...makeShip(1).nav, status: 'IN_TRANSIT' } }))
+    expect(wrapper.text()).toContain('Location') // the label stays, only the value is empty
+    expect(wrapper.text()).not.toContain('X1-XZ48-A1')
+  })
+
   it('handles ships without fuel tank or cargo hold', () => {
     const wrapper = mountCard(
       makeShip(1, { fuel: { current: 0, capacity: 0 }, cargo: { units: 0, capacity: 0 } }),

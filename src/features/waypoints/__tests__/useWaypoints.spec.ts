@@ -109,7 +109,7 @@ describe('useWaypoints', () => {
     expect(requestedWaypointPages(otherStub)).toEqual([1])
   })
 
-  it('starts over when only the flight mode changes', async () => {
+  it('does not reload for changes within the same system, flight mode included', async () => {
     const stub = mockWaypointsApi('X1-XZ48', makeWaypoints(3))
     const ship = ref(makeShip(1))
     const list = useWaypoints(ship)
@@ -118,22 +118,11 @@ describe('useWaypoints', () => {
 
     ship.value = makeShip(1, { nav: { ...makeShip(1).nav, flightMode: 'BURN' } })
     await nextTick()
-
-    expect(list.loaded.value).toBe(false)
-    await vi.waitFor(() => expect(list.loaded.value).toBe(true))
-    expect(requestedWaypointPages(stub)).toEqual([1])
-  })
-
-  it('does not reload for changes unrelated to system or flight mode', async () => {
-    const stub = mockWaypointsApi('X1-XZ48', makeWaypoints(3))
-    const ship = ref(makeShip(1))
-    const list = useWaypoints(ship)
-    await vi.waitFor(() => expect(list.loaded.value).toBe(true))
-    stub.mockClear()
-
     ship.value = makeShip(1, { cargo: { units: 30, capacity: 40 } })
     await nextTick()
 
+    expect(list.loaded.value).toBe(true)
+    expect(list.waypoints.value).toHaveLength(3)
     expect(stub).not.toHaveBeenCalled()
   })
 
@@ -247,7 +236,7 @@ describe('useWaypoints', () => {
       ship.value = makeShip(1, { nav: { ...makeShip(1).nav, waypointSymbol: 'X1-XZ48-A2' } })
       await vi.waitFor(() => expect(originCoordinates.value).toEqual({ x: 3, y: 4 }))
 
-      // Same system, same flight mode: the paginated list itself has no reason to reload.
+      // Same system: the paginated list itself has no reason to reload.
       expect(waypoints.value).toHaveLength(2)
       expect(requestedWaypointPages(stub)).toEqual([])
     })

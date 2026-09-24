@@ -44,7 +44,10 @@ const statusLabel = computed(() => {
 
 // Docking/orbiting only makes sense at a waypoint: a ship en route has nowhere to send that
 // request until it arrives. Flight mode has no such restriction — it can change mid-transit too.
-const canToggleDocking = computed(() => props.ship.nav.status !== 'IN_TRANSIT')
+// A ship en route is between waypoints — in the void — so it has no location to show until it
+// arrives (`nav.waypointSymbol` is only where it's *headed* while IN_TRANSIT, not where it is).
+const inTransit = computed(() => props.ship.nav.status === 'IN_TRANSIT')
+const canToggleDocking = computed(() => !inTransit.value)
 const toggleLabel = computed(() =>
   t(props.ship.nav.status === 'DOCKED' ? 'fleet.actions.enterOrbit' : 'fleet.actions.dock'),
 )
@@ -103,8 +106,11 @@ function onFlightModeChange(event: Event) {
           <span class="text-[10px] tracking-[0.06em] text-ink-dim uppercase">
             {{ t('fleet.location') }}
           </span>
-          <span class="truncate font-mono text-[11px]" :title="ship.nav.waypointSymbol">
-            {{ ship.nav.waypointSymbol }}
+          <span
+            class="min-h-4 truncate font-mono text-[11px]"
+            :title="inTransit ? undefined : ship.nav.waypointSymbol"
+          >
+            {{ inTransit ? '' : ship.nav.waypointSymbol }}
           </span>
         </span>
         <span class="flex flex-col gap-1.5">
