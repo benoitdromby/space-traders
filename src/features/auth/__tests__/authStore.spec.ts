@@ -47,6 +47,16 @@ describe('auth store', () => {
     expect(auth.error).toBe(code)
   })
 
+  it('rejects a token with characters that can never be valid (e.g. an emoji) without a request', async () => {
+    const fetchMock = mockFetch(200, { data: AGENT })
+    const auth = useAuthStore()
+
+    await expect(auth.connect('abc😁')).resolves.toBe(false)
+
+    expect(auth.error).toBe('invalidToken')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it('reports a network failure', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
     const auth = useAuthStore()

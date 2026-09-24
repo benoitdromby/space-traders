@@ -7,6 +7,11 @@ import { clearAuthToken, getAuthToken, saveAuthToken } from '@/api/authToken'
 import { fetchAgent } from '@/features/auth/api/agentApi'
 import type { Agent, AuthErrorCode } from '@/features/auth/types/agent'
 
+// A bearer token is visible ASCII with no whitespace (a JWT: letters, digits, "-", "_", "."). Anything
+// else (an emoji pasted by mistake, stray spaces inside) can never be a valid token — and fetch()
+// refuses to even send it as a header, which would otherwise surface as a misleading "network" error.
+const TOKEN_PATTERN = /^[\x21-\x7E]+$/
+
 function toAuthErrorCode(error: unknown): AuthErrorCode {
   if (error instanceof ApiError) {
     if (error.status === 401) return 'invalidToken'
@@ -47,6 +52,10 @@ export const useAuthStore = defineStore('auth', () => {
   async function connect(rawToken: string): Promise<boolean> {
     const token = rawToken.trim()
     if (!token) return false
+    if (!TOKEN_PATTERN.test(token)) {
+      error.value = 'invalidToken'
+      return false
+    }
     return authenticate(() => fetchAgent({ token }), token)
   }
 
