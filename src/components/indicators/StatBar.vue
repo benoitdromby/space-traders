@@ -8,7 +8,7 @@ const props = defineProps<{
   tone: 'fuel' | 'cargo'
 }>()
 
-// Some ships have no fuel tank or cargo hold (capacity 0): there is no percentage to show.
+// A max of 0 means there is nothing to measure against: no percentage to show.
 const percent = computed(() =>
   props.max > 0 ? Math.min(100, Math.round((props.value / props.max) * 100)) : null,
 )

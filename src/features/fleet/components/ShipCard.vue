@@ -9,7 +9,7 @@ import {
   type ShipStatus,
 } from '@/features/fleet/types/ship'
 import ShipFrameIcon from '@/features/fleet/components/ShipFrameIcon.vue'
-import StatBar from '@/features/fleet/components/StatBar.vue'
+import StatBar from '@/components/indicators/StatBar.vue'
 
 const props = defineProps<{
   ship: Ship
@@ -47,6 +47,10 @@ const statusLabel = computed(() => {
 // A ship en route is between waypoints — in the void — so it has no location to show until it
 // arrives (`nav.waypointSymbol` is only where it's *headed* while IN_TRANSIT, not where it is).
 const inTransit = computed(() => props.ship.nav.status === 'IN_TRANSIT')
+// A ship can lack a cargo hold and/or a fuel tank entirely (a probe reports capacity 0 for both):
+// there's nothing to measure, so those bars are left out rather than shown empty.
+const hasCargoHold = computed(() => props.ship.cargo.capacity > 0)
+const hasFuelTank = computed(() => props.ship.fuel.capacity > 0)
 const canToggleDocking = computed(() => !inTransit.value)
 const toggleLabel = computed(() =>
   t(props.ship.nav.status === 'DOCKED' ? 'fleet.actions.enterOrbit' : 'fleet.actions.dock'),
@@ -115,12 +119,14 @@ function onFlightModeChange(event: Event) {
         </span>
         <span class="flex flex-col gap-1.5">
           <StatBar
+            v-if="hasCargoHold"
             :label="t('fleet.cargo')"
             :value="ship.cargo.units"
             :max="ship.cargo.capacity"
             tone="cargo"
           />
           <StatBar
+            v-if="hasFuelTank"
             :label="t('fleet.fuel')"
             :value="ship.fuel.current"
             :max="ship.fuel.capacity"

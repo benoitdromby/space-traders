@@ -76,6 +76,17 @@ export const LowFuelAndCargo: Story = {
   },
 }
 
+/** A probe: capacity 0 for both means there is nothing to measure, so neither bar is shown. */
+export const NoCargoOrFuelCapacity: Story = {
+  args: {
+    ship: makeMockShip(1, {
+      frame: { symbol: 'FRAME_PROBE', name: 'Probe' },
+      cargo: { units: 0, capacity: 0 },
+      fuel: { current: 0, capacity: 0 },
+    }),
+  },
+}
+
 export const ActionPending: Story = {
   args: { ship: makeMockShip(1), toggling: true },
 }

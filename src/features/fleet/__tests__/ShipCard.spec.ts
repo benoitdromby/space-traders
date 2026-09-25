@@ -55,12 +55,20 @@ describe('ShipCard', () => {
     expect(wrapper.text()).not.toContain('X1-XZ48-A1')
   })
 
-  it('handles ships without fuel tank or cargo hold', () => {
+  it('leaves out the cargo and fuel bars for a ship that cannot hold either (e.g. a probe)', () => {
     const wrapper = mountCard(
       makeShip(1, { fuel: { current: 0, capacity: 0 }, cargo: { units: 0, capacity: 0 } }),
     )
     expect(wrapper.text()).not.toContain('NaN')
-    expect(wrapper.text()).toContain('—')
+    expect(wrapper.text()).not.toContain('Cargo')
+    expect(wrapper.text()).not.toContain('Fuel')
+    expect(wrapper.find('[role="progressbar"]').exists()).toBe(false)
+  })
+
+  it('still shows the bar for whichever of the two the ship does have', () => {
+    const wrapper = mountCard(makeShip(1, { cargo: { units: 0, capacity: 0 } }))
+    expect(wrapper.text()).not.toContain('Cargo')
+    expect(wrapper.text()).toContain('Fuel')
   })
 
   it('reflects the selection and emits the symbol on click', async () => {
